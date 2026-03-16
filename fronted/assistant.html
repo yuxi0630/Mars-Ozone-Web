@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet" />
 
+  <script src="assets/js/common.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -216,59 +217,25 @@
   <div class="relative min-h-screen overflow-x-hidden bg-space-shell">
     <div class="pointer-events-none absolute inset-0 grid-bg opacity-25"></div>
     <div class="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 to-transparent"></div>
-
-    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071018]/80 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
-        <div class="flex items-center gap-4">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
-            <span class="material-symbols-outlined text-[26px]">deployed_code</span>
-          </div>
-          <div>
-            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
-            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
-          </div>
-        </div>
-
-        <div class="hidden items-center gap-8 md:flex">
-          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
-          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navPredict">臭氧预测</a>
-          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navExplorer">时空可视化</a>
-          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
-          <a href="assistant.html" class="text-sm font-medium text-primary" data-i18n="navAssistant">智能助手</a>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
-            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
-            <span>API</span>
-            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
-          </div>
-
-          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
-            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
-            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <div id="globalHeader"></div>
 
     <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
-      <section class="hero-panel rounded-[30px] border border-white/10 bg-hero-shell p-6 shadow-glow lg:p-8">
-        <div class="grid gap-6 xl:grid-cols-[1.12fr_0.88fr] xl:items-center">
+      <section class="hero-panel rounded-[32px] border border-white/10 bg-hero-shell p-6 shadow-card lg:p-8">
+        <div class="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
           <div class="relative z-10">
             <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
               <span class="material-symbols-outlined text-[16px]">smart_toy</span>
               <span data-i18n="assistantBadge">Mars AI Assistant</span>
             </div>
 
-            <h2 class="max-w-4xl text-3xl font-bold leading-tight tracking-tight text-white lg:text-5xl" data-i18n="assistantTitle">
+            <h1 class="max-w-4xl text-[44px] font-black leading-[0.96] tracking-[-0.045em] text-white lg:text-[68px]" data-i18n="assistantTitle">
               智能助手
-            </h2>
-            <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="assistantDesc">
+            </h1>
+            <p class="mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="assistantDesc">
               提供面向评委和用户的火星臭氧智能问答能力，可用于解释预测值、图表结果、风险等级以及 MY34 沙尘暴等专题内容。
             </p>
 
-            <div class="mt-6 flex flex-wrap gap-3">
+            <div class="mt-8 flex flex-wrap gap-3">
               <a href="#assistantConsole" class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(19,164,236,0.24)] transition hover:bg-primary/90">
                 <span class="material-symbols-outlined text-[18px]">chat</span>
                 <span data-i18n="heroCta1">开始问答</span>
@@ -298,7 +265,7 @@
             </div>
           </div>
 
-          <div class="panel-card relative rounded-[30px] p-5 lg:p-6">
+          <div class="panel-card relative rounded-[28px] p-6 lg:p-7">
             <div class="mb-4 flex items-center justify-between">
               <div>
                 <div class="text-[11px] uppercase tracking-[0.24em] text-slate-400" data-i18n="heroPanelKicker">Explainable Demo Layer</div>
@@ -340,7 +307,7 @@
           </div>
         </div>
 
-        <div class="mt-6 grid gap-4 xl:grid-cols-4">
+        <div class="mt-8 grid gap-4 xl:grid-cols-4">
           <div class="glass-strip rounded-2xl p-4">
             <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="hud1Label">Role</div>
             <div class="mt-2 text-lg font-semibold text-white" data-i18n="hud1Value">解释型展示中枢</div>
@@ -557,7 +524,7 @@
       zh: {
         brandTitle: '火星臭氧智能预报平台',
         brandSub: 'Mars Ozone Intelligence Platform',
-        navHome: '首页 / 总览',
+        navHome: '首页',
         navPredict: '臭氧预测',
         navExplorer: '时空可视化',
         navMetrics: '模型评估',
@@ -659,7 +626,7 @@
       en: {
         brandTitle: 'Mars Ozone Intelligence Platform',
         brandSub: 'Deep-space Forecast Platform',
-        navHome: 'Home / Overview',
+        navHome: 'Home',
         navPredict: 'Ozone Forecast',
         navExplorer: 'Exploration',
         navMetrics: 'Model Evaluation',
@@ -783,16 +750,6 @@
 
       const input = document.getElementById('chatInput');
       if (input) input.placeholder = t('demoQuestion');
-
-      document.getElementById('langZh').className =
-        state.lang === 'zh'
-          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
-          : 'px-3 py-1.5 text-sm text-slate-400';
-
-      document.getElementById('langEn').className =
-        state.lang === 'en'
-          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
-          : 'px-3 py-1.5 text-sm text-slate-400';
     }
 
     function showToast(message, isError = false) {
@@ -967,15 +924,11 @@
     document.getElementById('chatInput').addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') sendMessage();
     });
-    document.getElementById('langZh').addEventListener('click', () => {
-      state.lang = 'zh';
-      localStorage.setItem('marsLang', 'zh');
-      applyI18n();
-      checkHealth();
-    });
-    document.getElementById('langEn').addEventListener('click', () => {
-      state.lang = 'en';
-      localStorage.setItem('marsLang', 'en');
+    window.I18N = messages;
+    marsApp.renderTopNavbar();
+
+    document.addEventListener('mars:langchange', () => {
+      state.lang = localStorage.getItem('marsLang') || 'zh';
       applyI18n();
       checkHealth();
     });

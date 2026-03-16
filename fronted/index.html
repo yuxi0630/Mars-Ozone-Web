@@ -96,45 +96,10 @@
     <div class="pointer-events-none absolute left-1/2 top-[-10rem] h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[140px]"></div>
     <div class="pointer-events-none absolute right-[-8rem] top-[10rem] h-[24rem] w-[24rem] rounded-full bg-accent/10 blur-[120px]"></div>
 
-    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071015]/70 backdrop-blur-2xl">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
-        <a href="index.html" class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-soft">
-            <span class="material-symbols-outlined text-[28px]">flare</span>
-          </div>
-          <div>
-            <div class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</div>
-            <div class="text-xs uppercase tracking-[0.22em] text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</div>
-          </div>
-        </a>
-
-        <nav class="hidden items-center gap-6 xl:flex">
-          <a href="index.html" class="text-sm font-medium text-primary" data-i18n="navHome">首页</a>
-          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navPredict">臭氧预测</a>
-          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navExplorer">时空可视化</a>
-          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navMetrics">模型评估</a>
-          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navAssistant">智能助手</a>
-          <a href="governance.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navGovernance">数据治理</a>
-          <a href="science.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navScience">科普中心</a>
-          <a href="user.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navUser">用户中心</a>
-        </nav>
-
-        <div class="flex items-center gap-3">
-          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 md:flex">
-            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
-            <span>API</span>
-            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
-          </div>
-          <div class="overflow-hidden rounded-full border border-white/10 bg-white/5">
-            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
-            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <div id="globalHeader"></div>
 
     <main class="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-6 lg:px-8 lg:pb-24 lg:pt-8">
-      <section class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-hero-radial px-6 py-8 shadow-glow lg:px-10 lg:py-12">
+      <section class="relative overflow-hidden rounded-[32px] border border-white/10 bg-hero-radial px-6 py-8 shadow-card lg:px-10 lg:py-10">
         <div class="absolute inset-0 bg-grid-fine bg-[size:42px_42px] opacity-[0.09]"></div>
         <div class="absolute inset-y-0 right-0 hidden w-[42%] lg:block">
           <div class="planet-ring absolute right-8 top-8 h-[28rem] w-[28rem] rounded-full"></div>
@@ -142,7 +107,7 @@
           <div class="absolute right-0 top-1/2 h-20 w-72 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"></div>
         </div>
 
-        <div class="relative z-10 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
+        <div class="relative z-10 grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
           <div class="max-w-3xl">
             <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-primary">
               <span class="relative flex h-2.5 w-2.5">
@@ -152,11 +117,11 @@
               <span data-i18n="heroSignal">深空观测链路已激活</span>
             </div>
 
-            <h1 class="max-w-4xl text-4xl font-black leading-[0.96] tracking-[-0.05em] text-white text-glow sm:text-5xl lg:text-7xl" data-i18n="heroTitle">
+            <h1 class="max-w-4xl text-[44px] font-black leading-[0.96] tracking-[-0.045em] text-white text-glow sm:text-[56px] lg:text-[68px]" data-i18n="heroTitle">
               火星臭氧智能预报与科研科普平台
             </h1>
 
-            <p class="mt-6 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base sm:leading-8 lg:text-lg" data-i18n="heroDesc">
+            <p class="mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="heroDesc">
               基于 OpenMars、MCD 等公开数据与时间序列深度学习模型，构建集智能预测、时空可视化、可信度说明、数据治理与科研科普传播于一体的比赛级平台。
             </p>
 
@@ -188,7 +153,7 @@
           </div>
 
           <div class="grid gap-5">
-            <div class="glass-panel rounded-[1.75rem] p-6">
+            <div class="glass-panel rounded-[28px] p-6 lg:p-7">
               <div class="flex items-center justify-between">
                 <div>
                   <div class="text-xs font-bold uppercase tracking-[0.22em] text-primary" data-i18n="snapshotEyebrow">平台快照</div>
@@ -221,7 +186,7 @@
               </div>
             </div>
 
-            <div class="glass-panel rounded-[1.75rem] p-6">
+            <div class="glass-panel rounded-[28px] p-6 lg:p-7">
               <div class="flex items-center justify-between">
                 <div>
                   <div class="text-xs font-bold uppercase tracking-[0.22em] text-primary" data-i18n="quickEyebrow">快速入口</div>
@@ -255,7 +220,7 @@
           </div>
         </div>
 
-        <div class="relative z-10 mt-10">
+        <div class="relative z-10 mt-8">
           <div class="hud-line mb-6 opacity-60"></div>
           <div class="grid gap-4 md:grid-cols-4">
             <div class="border-l border-primary/40 pl-4">
@@ -279,7 +244,7 @@
       </section>
 
       <section class="mt-8 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div class="glass-panel rounded-[1.75rem] p-6 lg:p-8">
+        <div class="glass-panel rounded-[28px] p-6 lg:p-7 lg:p-8">
           <div class="flex items-center justify-between gap-4">
             <div>
               <div class="text-xs font-bold uppercase tracking-[0.22em] text-primary" data-i18n="storyEyebrow">项目定位</div>
@@ -307,7 +272,7 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-[1.75rem] p-6 lg:p-8">
+        <div class="glass-panel rounded-[28px] p-6 lg:p-7 lg:p-8">
           <div class="flex items-center justify-between">
             <div>
               <div class="text-xs font-bold uppercase tracking-[0.22em] text-primary" data-i18n="highlightEyebrow">作品亮点</div>
@@ -360,7 +325,7 @@
       </section>
 
       <section class="mt-8 grid gap-6 lg:grid-cols-[1fr_0.95fr]">
-        <div class="glass-panel rounded-[1.75rem] p-6 lg:p-8">
+        <div class="glass-panel rounded-[28px] p-6 lg:p-7 lg:p-8">
           <div class="flex items-center justify-between gap-4">
             <div>
               <div class="text-xs font-bold uppercase tracking-[0.22em] text-primary" data-i18n="pathEyebrow">展示路径</div>
@@ -384,7 +349,7 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-[1.75rem] p-6 lg:p-8">
+        <div class="glass-panel rounded-[28px] p-6 lg:p-7 lg:p-8">
           <div class="flex items-center justify-between">
             <div>
               <div class="text-xs font-bold uppercase tracking-[0.22em] text-primary" data-i18n="roadmapEyebrow">平台地图</div>
@@ -407,6 +372,7 @@
     </main>
   </div>
 
+  <script src="assets/js/common.js"></script>
   <script>
     const messages = {
       zh: {
@@ -597,58 +563,49 @@
       }
     };
 
-    const state = { lang: localStorage.getItem('marsLang') || 'zh' };
+    window.I18N = messages;
 
-    function applyI18n() {
-      const dict = messages[state.lang];
-      document.documentElement.lang = state.lang;
+    function applyHomeI18n() {
+      const lang = localStorage.getItem('marsLang') || 'zh';
+      const dict = messages[lang] || {};
+      document.documentElement.lang = lang;
       document.querySelectorAll('[data-i18n]').forEach((el) => {
         const key = el.getAttribute('data-i18n');
         if (dict[key]) el.textContent = dict[key];
       });
-      document.getElementById('langZh').className = state.lang === 'zh' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
-      document.getElementById('langEn').className = state.lang === 'en' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
     }
 
-    async function checkHealth() {
-      const apiBaseCandidates = ['http://127.0.0.1:5000/api/health', '/api/health'];
-      const apiStatus = document.getElementById('apiStatus');
+    async function updateHomeHeroStatus() {
       const heroApi = document.getElementById('heroApi');
+      if (!heroApi) return;
+
+      const lang = localStorage.getItem('marsLang') || 'zh';
+      const apiBaseCandidates = [];
+      if (window.API_BASE) apiBaseCandidates.push(`${window.API_BASE}/health`);
+      apiBaseCandidates.push('http://127.0.0.1:5000/api/health', '/api/health');
 
       for (const url of apiBaseCandidates) {
         try {
           const res = await fetch(url);
           const data = await res.json();
           if (res.ok && data.code === 0) {
-            apiStatus.textContent = state.lang === 'zh' ? '在线' : 'Online';
-            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
-            heroApi.textContent = state.lang === 'zh' ? '运行中' : 'OPERATIONAL';
+            heroApi.textContent = lang === 'zh' ? '运行中' : 'OPERATIONAL';
             return;
           }
         } catch (e) {}
       }
 
-      apiStatus.textContent = state.lang === 'zh' ? '离线' : 'Offline';
-      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
-      heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
+      heroApi.textContent = lang === 'zh' ? '离线' : 'OFFLINE';
     }
 
-    document.getElementById('langZh').addEventListener('click', () => {
-      state.lang = 'zh';
-      localStorage.setItem('marsLang', 'zh');
-      applyI18n();
-      checkHealth();
-    });
+    marsApp.renderTopNavbar();
+    applyHomeI18n();
+    updateHomeHeroStatus();
 
-    document.getElementById('langEn').addEventListener('click', () => {
-      state.lang = 'en';
-      localStorage.setItem('marsLang', 'en');
-      applyI18n();
-      checkHealth();
+    document.addEventListener('mars:langchange', () => {
+      applyHomeI18n();
+      updateHomeHeroStatus();
     });
-
-    applyI18n();
-    checkHealth();
   </script>
 </body>
 </html>

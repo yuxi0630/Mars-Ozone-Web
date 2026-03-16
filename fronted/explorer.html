@@ -182,50 +182,29 @@
     <div class="pointer-events-none absolute inset-0 grid-bg opacity-20"></div>
     <div class="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/8 to-transparent"></div>
 
-    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071018]/78 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-3 lg:px-8">
-        <div class="flex items-center gap-4">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
-            <span class="material-symbols-outlined text-[26px]">blur_on</span>
-          </div>
-          <div>
-            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
-            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
-          </div>
-        </div>
-
-        <div class="hidden items-center gap-8 md:flex">
-          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
-          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navPredict">臭氧预测</a>
-          <a href="explorer.html" class="text-sm font-medium text-primary" data-i18n="navExplorer">时空可视化</a>
-          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
-          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navAssistant">智能助手</a>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
-            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
-            <span>API</span>
-            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
-          </div>
-          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
-            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
-            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <div id="globalHeader"></div>
 
     <main class="mx-auto max-w-[1600px] px-4 py-6 lg:px-8 lg:py-8">
-      <section class="rounded-[32px] border border-white/10 bg-gradient-to-br from-white/[0.04] via-primary/[0.03] to-accent/[0.04] p-6 shadow-glow lg:p-8">
-        <div class="grid gap-8 xl:grid-cols-[1.08fr_0.92fr]">
+      <section class="rounded-[32px] border border-white/10 bg-gradient-to-br from-white/[0.04] via-primary/[0.03] to-accent/[0.04] p-6 shadow-card lg:p-8">
+        <div class="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
           <div>
             <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold section-kicker text-primary">
               <span class="material-symbols-outlined text-[16px]">language</span>
               <span data-i18n="explorerBadge">Mars Spatial Explorer</span>
             </div>
-            <h2 class="max-w-4xl text-4xl font-bold leading-tight tracking-tight text-white lg:text-6xl" data-i18n="explorerTitle">时空可视化 / 数据探索</h2>
+            <h1 class="max-w-4xl text-[44px] font-black leading-[0.96] tracking-[-0.045em] text-white lg:text-[68px]" data-i18n="explorerTitle">时空可视化 / 数据探索</h1>
             <p class="mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="explorerDesc">围绕 3D 火星球、全球热图、时间演化与专题预留构建解释型可视化界面，让评委直观看到火星臭氧的空间结构、变化趋势与研究扩展方向。</p>
+
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="#marsViewer" class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(19,164,236,0.24)] transition hover:bg-primary/90">
+                <span class="material-symbols-outlined text-[18px]">language</span>
+                <span data-i18n="heroCta1">进入 3D 火星球</span>
+              </a>
+              <a href="#topicReserve" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                <span class="material-symbols-outlined text-[18px]">science</span>
+                <span data-i18n="heroCta2">查看专题预留</span>
+              </a>
+            </div>
 
             <div class="mt-8 grid gap-4 sm:grid-cols-3">
               <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
@@ -245,7 +224,7 @@
               </div>
             </div>
 
-            <div class="mt-8 grid gap-4 lg:grid-cols-3">
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
               <div class="panel-soft rounded-2xl p-4">
                 <div class="mb-2 flex items-center gap-2 text-white">
                   <span class="material-symbols-outlined text-primary text-[18px]">public</span>
@@ -270,7 +249,7 @@
             </div>
           </div>
 
-          <div class="panel-card rounded-[28px] p-5 lg:p-6">
+          <div class="panel-card rounded-[28px] p-6 lg:p-7">
             <div class="mb-4 flex items-center justify-between">
               <div>
                 <p class="text-xs section-kicker text-primary/80" data-i18n="controlBadge">Visual Console</p>
@@ -600,14 +579,16 @@
     </main>
   </div>
 
+  <script src="assets/js/common.js"></script>
   <script>
-    const API_BASE = 'http://127.0.0.1:5000/api';
+    window.API_BASE = 'http://127.0.0.1:5000/api';
+    const API_BASE = window.API_BASE;
 
     const messages = {
       zh: {
         brandTitle: '火星臭氧智能预报平台',
         brandSub: 'Mars Ozone Intelligence Platform',
-        navHome: '首页 / 总览',
+        navHome: '首页',
         navPredict: '臭氧预测',
         navExplorer: '时空可视化',
         navMetrics: '模型评估',
@@ -615,6 +596,8 @@
         explorerBadge: 'Mars Spatial Explorer',
         explorerTitle: '时空可视化 / 数据探索',
         explorerDesc: '围绕 3D 火星球、全球热图、时间演化与专题预留构建解释型可视化界面，让评委直观看到火星臭氧的空间结构、变化趋势与研究扩展方向。',
+        heroCta1: '进入 3D 火星球',
+        heroCta2: '查看专题预留',
         heroMetric1Label: '数据状态',
         heroMetric1Sub: '全局网格加载结果',
         heroMetric2Label: '接口状态',
@@ -727,7 +710,7 @@
       en: {
         brandTitle: 'Mars Ozone Intelligence Platform',
         brandSub: 'Deep-space Forecast Platform',
-        navHome: 'Home / Overview',
+        navHome: 'Home',
         navPredict: 'Ozone Forecast',
         navExplorer: 'Exploration',
         navMetrics: 'Model Evaluation',
@@ -735,6 +718,8 @@
         explorerBadge: 'Mars Spatial Explorer',
         explorerTitle: 'Spatiotemporal Visualization / Exploration',
         explorerDesc: 'An interpretive visualization stage built around the 3D Mars globe, global heatmaps, temporal evolution and reserved topics, helping judges understand spatial structure, trend changes and research extensions.',
+        heroCta1: 'Open 3D Mars Globe',
+        heroCta2: 'View Topic Reserve',
         heroMetric1Label: 'Data Status',
         heroMetric1Sub: 'Global grid loading result',
         heroMetric2Label: 'API Status',
@@ -846,6 +831,8 @@
       }
     };
 
+    window.I18N = { ...(window.I18N || {}), zh: { ...((window.I18N || {}).zh || {}), ...messages.zh }, en: { ...((window.I18N || {}).en || {}), ...messages.en } };
+
     const state = {
       lang: localStorage.getItem('marsLang') || 'zh',
       gridData: null,
@@ -863,11 +850,6 @@
         const key = el.getAttribute('data-i18n');
         if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
       });
-
-      document.getElementById('langZh').className =
-        state.lang === 'zh' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
-      document.getElementById('langEn').className =
-        state.lang === 'en' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
 
       refreshStaticSummaries();
     }
@@ -905,22 +887,17 @@
 
     async function checkHealth() {
       const candidates = [`${API_BASE}/health`, '/api/health'];
-      const apiStatus = document.getElementById('apiStatus');
       const heroApi = document.getElementById('heroApi');
       for (const url of candidates) {
         try {
           const res = await fetch(url);
           const data = await res.json();
           if (res.ok && data.code === 0) {
-            apiStatus.textContent = t('online');
-            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
             heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
             return;
           }
         } catch (e) {}
       }
-      apiStatus.textContent = t('offline');
-      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
       heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
     }
 
@@ -1099,17 +1076,10 @@
     document.getElementById('clearGlobeBtn').addEventListener('click', () => clearGlobeEntities(true));
     document.getElementById('downloadBtn').addEventListener('click', downloadGridJson);
     document.getElementById('reportBtn').addEventListener('click', downloadGridJson);
+    marsApp.renderTopNavbar();
 
-    document.getElementById('langZh').addEventListener('click', () => {
-      state.lang = 'zh';
-      localStorage.setItem('marsLang', 'zh');
-      applyI18n();
-      checkHealth();
-    });
-
-    document.getElementById('langEn').addEventListener('click', () => {
-      state.lang = 'en';
-      localStorage.setItem('marsLang', 'en');
+    document.addEventListener('mars:langchange', () => {
+      state.lang = localStorage.getItem('marsLang') || 'zh';
       applyI18n();
       checkHealth();
     });

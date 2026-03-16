@@ -18,6 +18,7 @@
     rel="stylesheet"
   />
 
+  <script src="assets/js/common.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -120,43 +121,7 @@
 <body class="bg-bg-dark text-slate-100 antialiased">
   <div class="relative min-h-screen overflow-x-hidden">
     <div class="pointer-events-none absolute inset-0 grid-bg opacity-20"></div>
-
-    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#081117]/80 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
-        <div class="flex items-center gap-4">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
-            <span class="material-symbols-outlined text-[26px]">deployed_code</span>
-          </div>
-          <div>
-            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
-            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
-          </div>
-        </div>
-
-        <div class="hidden items-center gap-8 md:flex">
-          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
-          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navPredict">臭氧预测</a>
-          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navExplorer">时空可视化</a>
-          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
-          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navAssistant">智能助手</a>
-          <a href="user.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navUser">用户中心</a>
-          <a href="governance.html" class="text-sm font-medium text-primary" data-i18n="navGovernance">数据治理</a>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
-            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
-            <span>API</span>
-            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
-          </div>
-
-          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
-            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
-            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <div id="globalHeader"></div>
 
     <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
       <section class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-hero-deep p-6 shadow-glow lg:p-8">
@@ -168,7 +133,7 @@
               <span data-i18n="govBadge">Data Governance Hub</span>
             </div>
 
-            <h2 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-white lg:text-5xl" data-i18n="govTitle">
+            <h2 class="mt-4 text-4xl font-bold leading-[0.96] tracking-tight text-white xl:text-[68px]" data-i18n="govTitle">
               数据治理控制台
             </h2>
             <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="govDesc">
@@ -563,7 +528,7 @@
       zh: {
         brandTitle: '火星臭氧智能预报平台',
         brandSub: 'Mars Ozone Intelligence Platform',
-        navHome: '首页 / 总览',
+        navHome: '首页',
         navPredict: '臭氧预测',
         navExplorer: '时空可视化',
         navMetrics: '模型评估',
@@ -680,7 +645,7 @@
       en: {
         brandTitle: 'Mars Ozone Intelligence Platform',
         brandSub: 'Deep-space Forecast Platform',
-        navHome: 'Home / Overview',
+        navHome: 'Home',
         navPredict: 'Ozone Forecast',
         navExplorer: 'Exploration',
         navMetrics: 'Model Evaluation',
@@ -796,6 +761,8 @@
       }
     };
 
+    window.I18N = messages;
+
     const state = {
       lang: localStorage.getItem('marsLang') || 'zh'
     };
@@ -822,16 +789,6 @@
         const key = el.getAttribute('data-i18n');
         if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
       });
-
-      document.getElementById('langZh').className =
-        state.lang === 'zh'
-          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
-          : 'px-3 py-1.5 text-sm text-slate-400';
-
-      document.getElementById('langEn').className =
-        state.lang === 'en'
-          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
-          : 'px-3 py-1.5 text-sm text-slate-400';
     }
 
     function showToast(message, isError = false) {
@@ -856,8 +813,6 @@
         `${API_BASE}/health`,
         '/api/health'
       ];
-
-      const apiStatus = document.getElementById('apiStatus');
       const heroApi = document.getElementById('heroApi');
 
       for (const url of candidates) {
@@ -865,16 +820,11 @@
           const res = await fetch(url);
           const data = await res.json();
           if (res.ok && data.code === 0) {
-            apiStatus.textContent = t('online');
-            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
             heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
             return;
           }
         } catch (e) {}
       }
-
-      apiStatus.textContent = t('offline');
-      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
       heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
     }
 
@@ -883,6 +833,12 @@
       document.getElementById('datasetType').value = 'derived';
       document.getElementById('datasetDesc').value = t('demoDesc');
       syncMetaPreview();
+
+    document.addEventListener('mars:langchange', (e) => {
+      state.lang = e.detail.lang;
+      applyI18n();
+      if (typeof checkHealth === 'function') checkHealth();
+    });
     }
 
     function syncMetaPreview() {
@@ -948,20 +904,6 @@
     document.getElementById('datasetType').addEventListener('change', syncMetaPreview);
     document.getElementById('datasetDesc').addEventListener('input', syncMetaPreview);
 
-    document.getElementById('langZh').addEventListener('click', () => {
-      state.lang = 'zh';
-      localStorage.setItem('marsLang', 'zh');
-      applyI18n();
-      checkHealth();
-    });
-
-    document.getElementById('langEn').addEventListener('click', () => {
-      state.lang = 'en';
-      localStorage.setItem('marsLang', 'en');
-      applyI18n();
-      checkHealth();
-    });
-
     document.getElementById('scrollUploadBtn').addEventListener('click', () => {
       document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -970,6 +912,8 @@
       document.getElementById('workflowSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
+    marsApp.ensureSharedI18n();
+    marsApp.renderTopNavbar();
     applyI18n();
     checkHealth();
     document.getElementById('uploadState').textContent = t('waiting');

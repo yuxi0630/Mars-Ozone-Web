@@ -138,54 +138,33 @@
   <div class="relative min-h-screen overflow-x-hidden bg-space-shell">
     <div class="pointer-events-none absolute inset-0 grid-bg opacity-25"></div>
 
-    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071017]/80 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
-        <div class="flex items-center gap-4">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
-            <span class="material-symbols-outlined text-[26px]">query_stats</span>
-          </div>
-          <div>
-            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
-            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
-          </div>
-        </div>
-
-        <div class="hidden items-center gap-8 md:flex">
-          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
-          <a href="predict.html" class="text-sm font-medium text-primary" data-i18n="navPredict">臭氧预测</a>
-          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navExplorer">时空可视化</a>
-          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
-          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navAssistant">智能助手</a>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
-            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
-            <span>API</span>
-            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
-          </div>
-          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
-            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
-            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <div id="globalHeader"></div>
 
     <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
-      <section class="panel-card rounded-[30px] bg-hero-shell p-6 lg:p-8">
-        <div class="grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
+      <section class="panel-card rounded-[32px] bg-hero-shell p-6 lg:p-8">
+        <div class="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
           <div>
             <div class="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
               <span class="material-symbols-outlined text-[15px]">stacks</span>
               <span data-i18n="forecastBadge">Forecast Console</span>
             </div>
-            <h2 class="mt-5 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white lg:text-6xl" data-i18n="forecastTitle">
+            <h1 class="mt-5 max-w-4xl text-[44px] font-black leading-[0.96] tracking-[-0.045em] text-white lg:text-[68px]" data-i18n="forecastTitle">
               臭氧预测控制台
-            </h2>
-            <p class="hero-line mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="forecastDesc">
+            </h1>
+            <p class="mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="forecastDesc">
               面向比赛展示与真实联调的预测主界面，支持单点预测、未来 24h 趋势与全球网格热图，统一输出预测值、置信区间、风险等级和结果导出能力。
             </p>
+
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="#forecastWorkspace" class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(19,164,236,0.24)] transition hover:bg-primary/90">
+                <span class="material-symbols-outlined text-[18px]">tune</span>
+                <span data-i18n="heroCta1">进入预测控制台</span>
+              </a>
+              <a href="explorer.html" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                <span class="material-symbols-outlined text-[18px]">public</span>
+                <span data-i18n="heroCta2">联动可视化页</span>
+              </a>
+            </div>
 
             <div class="mt-8 grid gap-4 sm:grid-cols-3">
               <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
@@ -206,7 +185,7 @@
             </div>
           </div>
 
-          <div class="rounded-[28px] border border-white/10 bg-black/20 p-5 shadow-glow">
+          <div class="rounded-[28px] border border-white/10 bg-black/20 p-6 lg:p-7 shadow-card">
             <div class="flex items-center justify-between">
               <div>
                 <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="heroRightTag">Demo Route</div>
@@ -231,7 +210,7 @@
           </div>
         </div>
 
-        <div class="mt-8 grid gap-4 rounded-[26px] border border-white/10 bg-black/20 p-4 lg:grid-cols-4">
+        <div class="mt-8 grid gap-4 rounded-[28px] border border-white/10 bg-black/20 p-4 lg:grid-cols-4">
           <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
             <div class="text-[11px] uppercase tracking-[0.18em] text-slate-500" data-i18n="hudLabel1">主能力</div>
             <div class="mt-2 text-sm font-semibold text-white" data-i18n="hudValue1">单点 + 趋势 + 热图</div>
@@ -251,7 +230,7 @@
         </div>
       </section>
 
-      <section class="mt-8 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <section id="forecastWorkspace" class="mt-8 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
         <aside class="panel-card rounded-[28px] p-5 lg:p-6">
           <div class="flex items-center justify-between">
             <div>
@@ -463,14 +442,16 @@
     </main>
   </div>
 
+  <script src="assets/js/common.js"></script>
   <script>
-    const API_BASE = 'http://127.0.0.1:5000/api';
+    window.API_BASE = 'http://127.0.0.1:5000/api';
+    const API_BASE = window.API_BASE;
 
     const messages = {
       zh: {
         brandTitle: '火星臭氧智能预报平台',
         brandSub: 'Mars Ozone Intelligence Platform',
-        navHome: '首页 / 总览',
+        navHome: '首页',
         navPredict: '臭氧预测',
         navExplorer: '时空可视化',
         navMetrics: '模型评估',
@@ -486,6 +467,8 @@
         heroMetric3Sub: '根据单点结果更新',
         heroRightTag: '答辩路径',
         heroRightTitle: '答辩演示建议路径',
+        heroCta1: '进入预测控制台',
+        heroCta2: '联动可视化页',
         heroStep1: '先输入经纬度与 MY / Sol，执行单点预测，展示实时预测值与风险等级。',
         heroStep2: '再切换到 24h 趋势，解释未来波动区间、峰值位置与区间上界下界。',
         heroStep3: '最后生成全球热图，说明空间分布特征，并为 Explorer 页面做数据铺垫。',
@@ -572,7 +555,7 @@
       en: {
         brandTitle: 'Mars Ozone Intelligence Platform',
         brandSub: 'Mars Ozone Intelligence Platform',
-        navHome: 'Home / Overview',
+        navHome: 'Home',
         navPredict: 'Ozone Forecast',
         navExplorer: 'Exploration',
         navMetrics: 'Model Evaluation',
@@ -588,6 +571,8 @@
         heroMetric3Sub: 'Updated from point result',
         heroRightTag: 'Demo Route',
         heroRightTitle: 'Recommended demo path',
+        heroCta1: 'Open Forecast Console',
+        heroCta2: 'Open Visualization',
         heroStep1: 'Enter latitude, longitude, MY and Sol first, then run point forecast to show a direct prediction with risk level.',
         heroStep2: 'Next, switch to 24-hour trend to explain future variability, peak intervals and confidence bounds.',
         heroStep3: 'Finally, generate the global heatmap to explain spatial distribution and bridge into the Explorer page.',
@@ -673,6 +658,8 @@
       }
     };
 
+    window.I18N = { ...(window.I18N || {}), zh: { ...((window.I18N || {}).zh || {}), ...messages.zh }, en: { ...((window.I18N || {}).en || {}), ...messages.en } };
+
     const state = {
       lang: localStorage.getItem('marsLang') || 'zh',
       trendChart: null,
@@ -689,11 +676,6 @@
         const key = el.getAttribute('data-i18n');
         if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
       });
-
-      document.getElementById('langZh').className =
-        state.lang === 'zh' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
-      document.getElementById('langEn').className =
-        state.lang === 'en' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
     }
 
     function showToast(message, isError = false) {
@@ -747,22 +729,17 @@
 
     async function checkHealth() {
       const candidates = [`${API_BASE}/health`, '/api/health'];
-      const apiStatus = document.getElementById('apiStatus');
       const heroApi = document.getElementById('heroApi');
       for (const url of candidates) {
         try {
           const res = await fetch(url);
           const data = await res.json();
           if (res.ok && data.code === 0) {
-            apiStatus.textContent = t('online');
-            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
             heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
             return;
           }
         } catch (e) {}
       }
-      apiStatus.textContent = t('offline');
-      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
       heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
     }
 
@@ -974,18 +951,10 @@
     document.getElementById('downloadBtn').addEventListener('click', exportGridJson);
     document.getElementById('yearInput').addEventListener('change', updateHeroInputMeta);
     document.getElementById('solInput').addEventListener('input', updateHeroInputMeta);
+    marsApp.renderTopNavbar();
 
-    document.getElementById('langZh').addEventListener('click', () => {
-      state.lang = 'zh';
-      localStorage.setItem('marsLang', 'zh');
-      applyI18n();
-      checkHealth();
-      updateHeroInputMeta();
-    });
-
-    document.getElementById('langEn').addEventListener('click', () => {
-      state.lang = 'en';
-      localStorage.setItem('marsLang', 'en');
+    document.addEventListener('mars:langchange', () => {
+      state.lang = localStorage.getItem('marsLang') || 'zh';
       applyI18n();
       checkHealth();
       updateHeroInputMeta();
