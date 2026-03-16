@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mars Ozone Platform - Explorer</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.120/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.120/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#13a4ec',
+            accent: '#ff7b54',
+            'bg-dark': '#071018',
+            'panel-dark': '#101c22',
+            'line-dark': '#1f2d35'
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 0 60px rgba(19,164,236,0.16)',
+            card: '0 14px 50px rgba(0,0,0,0.34)'
+          },
+          backgroundImage: {
+            'mars-stage': 'radial-gradient(circle at 20% 20%, rgba(19,164,236,0.12), transparent 20%), radial-gradient(circle at 78% 28%, rgba(255,123,84,0.10), transparent 18%), radial-gradient(circle at 50% 75%, rgba(47,86,142,0.14), transparent 28%), linear-gradient(145deg, #071018 0%, #0a141c 42%, #10161e 100%)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(19,164,236,0.08), transparent 28%),
+        radial-gradient(circle at 18% 12%, rgba(255,123,84,0.08), transparent 18%),
+        radial-gradient(circle at 76% 18%, rgba(59,130,246,0.08), transparent 22%),
+        #071018;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+      background-size: 38px 38px;
+    }
+    .panel-card {
+      background: linear-gradient(180deg, rgba(16, 28, 34, 0.86), rgba(10, 18, 24, 0.9));
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.34);
+    }
+    .panel-soft {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.018));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .section-kicker {
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .legend-bar {
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgb(9, 19, 39) 0%, rgb(27, 56, 92) 20%, rgb(51, 181, 255) 40%, rgb(186, 81, 43) 65%, rgb(255, 123, 84) 82%, rgb(255, 211, 112) 100%);
+    }
+    .heatmap-wrap {
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.014)), rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    #heatmapCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+    }
+    #marsViewer {
+      width: 100%;
+      height: 640px;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: radial-gradient(circle at 50% 50%, rgba(20,34,52,0.55), rgba(3,8,14,0.96));
+      box-shadow: inset 0 0 100px rgba(0,0,0,0.55);
+    }
+    .globe-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      background: radial-gradient(circle at 50% 50%, rgba(18,40,58,0.48), rgba(5,10,16,0.96));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 0 80px rgba(19,164,236,0.10);
+    }
+    .globe-shell::before {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      background: radial-gradient(circle at 50% 50%, rgba(19,164,236,0.16), transparent 28%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+    .timeline-track {
+      position: relative;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .timeline-progress {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 62%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(19,164,236,0.92), rgba(255,123,84,0.82));
+    }
+    .timeline-knob {
+      position: absolute;
+      left: 62%;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid rgba(19,164,236,0.9);
+      box-shadow: 0 0 18px rgba(19,164,236,0.3);
+    }
+    .toolbar-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(5,10,16,0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s ease;
+      backdrop-filter: blur(12px);
+    }
+    .toolbar-btn:hover {
+      background: rgba(19,164,236,0.12);
+      border-color: rgba(19,164,236,0.45);
+      color: #67c8ff;
+    }
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9999;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: white;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+      font-size: 14px;
+    }
+    .cesium-viewer-toolbar,
+    .cesium-viewer-animationContainer,
+    .cesium-viewer-timelineContainer,
+    .cesium-viewer-bottom {
+      display: none !important;
+    }
+    .thin-scroll::-webkit-scrollbar { width: 8px; }
+    .thin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
+  </style>
+</head>
+<body class="bg-bg-dark text-slate-100 antialiased">
+  <div class="relative min-h-screen overflow-x-hidden bg-mars-stage">
+    <div class="pointer-events-none absolute inset-0 grid-bg opacity-20"></div>
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/8 to-transparent"></div>
+
+    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071018]/78 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-3 lg:px-8">
+        <div class="flex items-center gap-4">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
+            <span class="material-symbols-outlined text-[26px]">blur_on</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
+            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
+          </div>
+        </div>
+
+        <div class="hidden items-center gap-8 md:flex">
+          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
+          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navPredict">臭氧预测</a>
+          <a href="explorer.html" class="text-sm font-medium text-primary" data-i18n="navExplorer">时空可视化</a>
+          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
+          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navAssistant">智能助手</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
+            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
+            <span>API</span>
+            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
+          </div>
+          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
+            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
+            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-[1600px] px-4 py-6 lg:px-8 lg:py-8">
+      <section class="rounded-[32px] border border-white/10 bg-gradient-to-br from-white/[0.04] via-primary/[0.03] to-accent/[0.04] p-6 shadow-glow lg:p-8">
+        <div class="grid gap-8 xl:grid-cols-[1.08fr_0.92fr]">
+          <div>
+            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold section-kicker text-primary">
+              <span class="material-symbols-outlined text-[16px]">language</span>
+              <span data-i18n="explorerBadge">Mars Spatial Explorer</span>
+            </div>
+            <h2 class="max-w-4xl text-4xl font-bold leading-tight tracking-tight text-white lg:text-6xl" data-i18n="explorerTitle">时空可视化 / 数据探索</h2>
+            <p class="mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="explorerDesc">围绕 3D 火星球、全球热图、时间演化与专题预留构建解释型可视化界面，让评委直观看到火星臭氧的空间结构、变化趋势与研究扩展方向。</p>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs section-kicker text-slate-400" data-i18n="heroMetric1Label">数据状态</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="gridStatusHero">--</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric1Sub">全局网格加载结果</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs section-kicker text-slate-400" data-i18n="heroMetric2Label">接口状态</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="heroApi">--</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric2Sub">后端健康检查</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs section-kicker text-slate-400" data-i18n="heroMetric3Label">专题扩展</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="topicState">MY34</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric3Sub">沙尘暴专题预留</div>
+              </div>
+            </div>
+
+            <div class="mt-8 grid gap-4 lg:grid-cols-3">
+              <div class="panel-soft rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-white">
+                  <span class="material-symbols-outlined text-primary text-[18px]">public</span>
+                  <span class="font-semibold" data-i18n="heroFeature1Title">全球空间展示</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="heroFeature1Desc">支持 2D 热图与 3D 火星球联动展示，适合在答辩中快速建立“平台感”。</p>
+              </div>
+              <div class="panel-soft rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-white">
+                  <span class="material-symbols-outlined text-primary text-[18px]">timeline</span>
+                  <span class="font-semibold" data-i18n="heroFeature2Title">时间演化叙事</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="heroFeature2Desc">通过时间轴与关键节点提示，为 MY34 等专题故事线预留展示空间。</p>
+              </div>
+              <div class="panel-soft rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-white">
+                  <span class="material-symbols-outlined text-primary text-[18px]">science</span>
+                  <span class="font-semibold" data-i18n="heroFeature3Title">科研解释扩展</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="heroFeature3Desc">差值分析、因子联动与沙尘暴专题将作为后续科研解释与作品亮点模块。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[28px] p-5 lg:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <p class="text-xs section-kicker text-primary/80" data-i18n="controlBadge">Visual Console</p>
+                <h3 class="mt-1 text-xl font-bold text-white" data-i18n="controlTitle">可视化控制台</h3>
+              </div>
+              <button id="fillDemoBtn" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10" data-i18n="fillDemoBtn">填充示例</button>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block">
+                <span class="mb-2 block text-sm text-slate-300" data-i18n="labelYear">火星年</span>
+                <select id="yearInput" class="w-full rounded-2xl border-white/10 bg-white/5 text-white focus:border-primary focus:ring-primary">
+                  <option value="MY27">MY27</option>
+                  <option value="MY28">MY28</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="mb-2 block text-sm text-slate-300" data-i18n="labelSol">Sol</span>
+                <input id="solInput" type="number" step="1" class="w-full rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="120" />
+              </label>
+            </div>
+
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
+              <button id="loadGridBtn" class="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary/90" data-i18n="loadGridBtn">加载热图</button>
+              <button id="loadGlobeBtn" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10" data-i18n="loadGlobeBtn">加载火星球</button>
+              <button id="clearGlobeBtn" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10" data-i18n="clearGlobeBtn">清空点位</button>
+              <button id="downloadBtn" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10" data-i18n="downloadBtn">导出 JSON</button>
+            </div>
+
+            <div class="mt-5 grid gap-4 lg:grid-cols-2">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-300">
+                  <span class="material-symbols-outlined text-primary text-[18px]">play_circle</span>
+                  <span data-i18n="controlFlowTitle">推荐演示顺序</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="controlFlowDesc">热图加载 → 火星球映射 → 时间轴切换 → 专题说明，形成从数据到解释的完整叙事链。</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-300">
+                  <span class="material-symbols-outlined text-primary text-[18px]">lightbulb</span>
+                  <span data-i18n="controlTipTitle">提示</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="controlTipDesc">推荐先加载全局热图，再将结果映射到 3D 火星球，最后结合专题说明形成完整展示链路。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 2xl:grid-cols-[320px_minmax(0,1fr)_300px]">
+        <aside class="space-y-6 thin-scroll">
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs section-kicker text-slate-400" data-i18n="leftPanelBadge">Live Spatial Notes</p>
+                <h3 class="mt-1 text-lg font-bold text-white" data-i18n="leftPanelTitle">空间分析</h3>
+              </div>
+              <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.65)]"></span>
+            </div>
+            <div class="grid gap-4">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="left1Title">热图状态</div>
+                <p class="text-sm leading-7 text-slate-400" id="leftGridSummary">--</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="left2Title">数值范围</div>
+                <p class="text-sm leading-7 text-slate-400" id="leftRangeSummary">--</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="left3Title">解释建议</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="left3Desc">可突出高纬区域、对比南北差异或过渡带分布，帮助评委快速理解空间结构。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs section-kicker text-slate-400" data-i18n="leftFactorBadge">Explainer Focus</p>
+                <h3 class="mt-1 text-lg font-bold text-white" data-i18n="leftFactorTitle">展示建议</h3>
+              </div>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">Judge Flow</span>
+            </div>
+            <div class="space-y-4">
+              <div class="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                <div class="mb-1 text-sm font-semibold text-white" data-i18n="flow1Title">先看全球分布</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="flow1Desc">通过二维热图先解释整体空间格局，再切到 3D 火星球强化沉浸感。</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-1 text-sm font-semibold text-white" data-i18n="flow2Title">再讲关键区域</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="flow2Desc">聚焦高纬、极区或异常带，结合图例和区域提示讲清空间差异。</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-1 text-sm font-semibold text-white" data-i18n="flow3Title">最后引出专题</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="flow3Desc">自然过渡到差值分析、因子联动和 MY34 沙尘暴专题，体现平台扩展性。</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="space-y-6">
+          <div class="globe-shell p-5 lg:p-6">
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p class="text-xs section-kicker text-primary/80" data-i18n="globeBadge">Interactive Mars Stage</p>
+                <h3 class="mt-1 text-2xl font-bold text-white" data-i18n="globeTitle">3D 火星球</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="toolbar-btn" aria-label="zoom in"><span class="material-symbols-outlined">add</span></button>
+                <button class="toolbar-btn" aria-label="zoom out"><span class="material-symbols-outlined">remove</span></button>
+                <button class="toolbar-btn" aria-label="explore"><span class="material-symbols-outlined">explore</span></button>
+                <button class="toolbar-btn" aria-label="layers"><span class="material-symbols-outlined">layers</span></button>
+              </div>
+            </div>
+
+            <div id="marsViewer"></div>
+
+            <div class="mt-5 grid gap-3 md:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs section-kicker text-slate-400" data-i18n="globeInfo1">当前年份</div>
+                <div class="mt-2 text-lg font-semibold text-white" id="globeYear">--</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs section-kicker text-slate-400" data-i18n="globeInfo2">当前 Sol</div>
+                <div class="mt-2 text-lg font-semibold text-white" id="globeSol">--</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs section-kicker text-slate-400" data-i18n="globeInfo3">点位数量</div>
+                <div class="mt-2 text-lg font-semibold text-white" id="globeCount">--</div>
+              </div>
+            </div>
+
+            <div class="mt-5 rounded-[24px] border border-white/10 bg-[#050b12]/72 p-4 backdrop-blur-md">
+              <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                  <button class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:text-primary"><span class="material-symbols-outlined text-lg">skip_previous</span></button>
+                  <button class="rounded-full bg-primary p-2.5 text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90"><span class="material-symbols-outlined text-lg">play_arrow</span></button>
+                  <button class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:text-primary"><span class="material-symbols-outlined text-lg">skip_next</span></button>
+                </div>
+                <div class="text-xs font-mono text-slate-400">
+                  <span data-i18n="timelineMetaPrefix">Sol:</span> <span id="timelineSolMeta">2145</span> |
+                  <span class="font-bold tracking-[0.18em] text-primary">Ls <span id="timelineLsMeta">198.4°</span></span>
+                </div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-progress"></div>
+                <div class="timeline-knob"></div>
+              </div>
+              <div class="mt-3 flex justify-between text-[10px] uppercase tracking-[0.18em] text-slate-500">
+                <span data-i18n="timelineMark1">Start MY34</span>
+                <span data-i18n="timelineMark2">Equinox</span>
+                <span class="text-primary" data-i18n="timelineMark3">Dust Peak</span>
+                <span data-i18n="timelineMark4">Solstice</span>
+                <span data-i18n="timelineMark5">End MY34</span>
+              </div>
+            </div>
+
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-full border border-white/10 bg-[#050b12]/65 px-4 py-3 backdrop-blur-md">
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400" data-i18n="legendDockTitle">Ozone Density</span>
+                <span class="text-[10px] text-slate-500">10</span>
+                <div class="h-2 w-40 rounded-full legend-bar"></div>
+                <span class="text-[10px] text-slate-500">80</span>
+              </div>
+              <div class="flex items-center gap-5 text-xs text-slate-300">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input checked class="rounded border-white/15 bg-white/5 text-primary focus:ring-primary" type="checkbox" />
+                  <span data-i18n="dockToggle1">Heatmap</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input class="rounded border-white/15 bg-white/5 text-primary focus:ring-primary" type="checkbox" />
+                  <span data-i18n="dockToggle2">Grid</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
+            <div class="panel-card rounded-[28px] p-6">
+              <div class="mb-5 flex items-center justify-between">
+                <div>
+                  <p class="text-xs section-kicker text-slate-400" data-i18n="heatmapBadge">2D Evidence Layer</p>
+                  <h3 class="mt-1 text-lg font-bold text-white" data-i18n="heatmapTitle">全球热图</h3>
+                </div>
+                <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="heatmapTag">2D View</span>
+              </div>
+              <div class="heatmap-wrap rounded-2xl p-4">
+                <canvas id="heatmapCanvas" width="860" height="360"></canvas>
+              </div>
+              <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs section-kicker text-slate-400" data-i18n="heatmapInfo1">范围</div>
+                  <div class="mt-2 text-lg font-semibold text-white" id="heatmapRange">--</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs section-kicker text-slate-400" data-i18n="heatmapInfo2">网格规模</div>
+                  <div class="mt-2 text-lg font-semibold text-white" id="heatmapShape">--</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="panel-card rounded-[28px] p-6">
+                <div class="mb-5 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs section-kicker text-slate-400" data-i18n="legendBadge">Interpretive Legend</p>
+                    <h3 class="mt-1 text-lg font-bold text-white" data-i18n="legendTitle">色标图例</h3>
+                  </div>
+                  <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="legendTag">Legend</span>
+                </div>
+                <div class="legend-bar"></div>
+                <div class="mt-3 flex justify-between text-xs text-slate-400">
+                  <span data-i18n="legendLow">低值</span>
+                  <span data-i18n="legendMid">中值</span>
+                  <span data-i18n="legendHigh">高值</span>
+                </div>
+                <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 text-sm font-semibold text-white" data-i18n="legendNoteTitle">说明</div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="legendNoteDesc">颜色从深色到亮暖色表示臭氧值从低到高，适合在热图与火星球点位上统一表达。</p>
+                </div>
+              </div>
+
+              <div class="panel-card rounded-[28px] p-6">
+                <div class="mb-5 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs section-kicker text-primary/80" data-i18n="topicBadge">Future Topic Layer</p>
+                    <h3 class="mt-1 text-lg font-bold text-white" data-i18n="topicTitle">专题预留</h3>
+                  </div>
+                  <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="topicTag">Future Topics</span>
+                </div>
+                <div class="space-y-4">
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="mb-2 flex items-center gap-2 text-white">
+                      <span class="material-symbols-outlined text-primary text-[18px]">compare</span>
+                      <span class="font-semibold" data-i18n="topic1Title">差值分析</span>
+                    </div>
+                    <p class="text-sm leading-7 text-slate-400" data-i18n="topic1Desc">支持不同时间、不同火星年或不同模型结果之间的差值对比。</p>
+                    <div class="mt-3 rounded-full bg-primary/10 px-3 py-1 text-[11px] text-primary inline-flex" data-i18n="topic1State">前端占位 · 后端待新增</div>
+                  </div>
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="mb-2 flex items-center gap-2 text-white">
+                      <span class="material-symbols-outlined text-primary text-[18px]">device_hub</span>
+                      <span class="font-semibold" data-i18n="topic2Title">因子联动</span>
+                    </div>
+                    <p class="text-sm leading-7 text-slate-400" data-i18n="topic2Desc">预留臭氧与气象因子的联动分析模块，强化科研解释深度。</p>
+                    <div class="mt-3 rounded-full bg-primary/10 px-3 py-1 text-[11px] text-primary inline-flex" data-i18n="topic2State">前端占位 · 后端待新增</div>
+                  </div>
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="mb-2 flex items-center gap-2 text-white">
+                      <span class="material-symbols-outlined text-primary text-[18px]">cyclone</span>
+                      <span class="font-semibold" data-i18n="topic3Title">MY34 沙尘暴专题</span>
+                    </div>
+                    <p class="text-sm leading-7 text-slate-400" data-i18n="topic3Desc">围绕 MY34 全球沙尘暴事件构建前后对比与影响分析专题页。</p>
+                    <div class="mt-3 rounded-full bg-primary/10 px-3 py-1 text-[11px] text-primary inline-flex" data-i18n="topic3State">专题页预留 · 适合比赛展示</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="space-y-6 thin-scroll">
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs section-kicker text-slate-400" data-i18n="alertBadge">Regional Notes</p>
+                <h3 class="mt-1 text-lg font-bold text-white" data-i18n="alertTitle">区域提示</h3>
+              </div>
+              <span class="rounded-full bg-rose-500/10 px-3 py-1 text-xs text-rose-300" data-i18n="alertTag">Alerts</span>
+            </div>
+            <div class="space-y-3">
+              <div class="rounded-2xl border border-rose-500/25 bg-rose-500/8 p-4">
+                <div class="mb-1 flex items-center gap-2 text-rose-300">
+                  <span class="material-symbols-outlined text-[16px]">warning</span>
+                  <span class="text-[11px] font-bold uppercase tracking-[0.18em]" data-i18n="alert1Kicker">Low Density Warning</span>
+                </div>
+                <p class="text-sm font-semibold text-white" data-i18n="alert1Title">Hellas Basin Region</p>
+                <p class="mt-1 text-xs leading-6 text-slate-300" data-i18n="alert1Desc">臭氧低值区可作为异常区域讲解入口，用于说明空间差异与潜在环境风险。</p>
+              </div>
+              <div class="rounded-2xl border border-primary/20 bg-primary/8 p-4">
+                <div class="mb-1 flex items-center gap-2 text-primary">
+                  <span class="material-symbols-outlined text-[16px]">info</span>
+                  <span class="text-[11px] font-bold uppercase tracking-[0.18em]" data-i18n="alert2Kicker">Observation Note</span>
+                </div>
+                <p class="text-sm font-semibold text-white" data-i18n="alert2Title">Polar Vortex Shift</p>
+                <p class="mt-1 text-xs leading-6 text-slate-300" data-i18n="alert2Desc">可结合极区或高纬点位变化，解释臭氧在全球空间中的迁移与聚集特征。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs section-kicker text-slate-400" data-i18n="profileBadge">Atmosphere Context</p>
+                <h3 class="mt-1 text-lg font-bold text-white" data-i18n="profileTitle">大气背景</h3>
+              </div>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400">Profile</span>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <div class="mb-1 flex justify-between text-[11px] text-slate-400"><span>CO₂ Concentration</span><span>95.3%</span></div>
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/8"><div class="h-full w-[95%] bg-slate-400"></div></div>
+              </div>
+              <div>
+                <div class="mb-1 flex justify-between text-[11px] text-slate-400"><span>H₂O Vapor Pulse</span><span>Low</span></div>
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/8"><div class="h-full w-[15%] bg-primary"></div></div>
+              </div>
+              <div>
+                <div class="mb-1 flex justify-between text-[11px] text-slate-400"><span>UV Index (Surface)</span><span>Extreme</span></div>
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/8"><div class="h-full w-[85%] bg-accent"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-4">
+              <p class="text-xs section-kicker text-primary/80" data-i18n="reportBadge">Export & Storytelling</p>
+              <h3 class="mt-1 text-lg font-bold text-white" data-i18n="reportTitle">导出与讲解</h3>
+            </div>
+            <p class="text-sm leading-7 text-slate-400" data-i18n="reportDesc">当前可导出热图 JSON 结果；后续可扩展为专题报告、区域截图与差值分析说明文档。</p>
+            <button id="reportBtn" class="mt-5 w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary/90">
+              <span data-i18n="reportBtn">导出当前分析结果</span>
+            </button>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000/api';
+
+    const messages = {
+      zh: {
+        brandTitle: '火星臭氧智能预报平台',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: '首页 / 总览',
+        navPredict: '臭氧预测',
+        navExplorer: '时空可视化',
+        navMetrics: '模型评估',
+        navAssistant: '智能助手',
+        explorerBadge: 'Mars Spatial Explorer',
+        explorerTitle: '时空可视化 / 数据探索',
+        explorerDesc: '围绕 3D 火星球、全球热图、时间演化与专题预留构建解释型可视化界面，让评委直观看到火星臭氧的空间结构、变化趋势与研究扩展方向。',
+        heroMetric1Label: '数据状态',
+        heroMetric1Sub: '全局网格加载结果',
+        heroMetric2Label: '接口状态',
+        heroMetric2Sub: '后端健康检查',
+        heroMetric3Label: '专题扩展',
+        heroMetric3Sub: '沙尘暴专题预留',
+        heroFeature1Title: '全球空间展示',
+        heroFeature1Desc: '支持 2D 热图与 3D 火星球联动展示，适合在答辩中快速建立“平台感”。',
+        heroFeature2Title: '时间演化叙事',
+        heroFeature2Desc: '通过时间轴与关键节点提示，为 MY34 等专题故事线预留展示空间。',
+        heroFeature3Title: '科研解释扩展',
+        heroFeature3Desc: '差值分析、因子联动与沙尘暴专题将作为后续科研解释与作品亮点模块。',
+        controlBadge: '可视化控制台',
+        controlTitle: '可视化控制台',
+        fillDemoBtn: '填充示例',
+        labelYear: '火星年',
+        labelSol: 'Sol',
+        loadGridBtn: '加载热图',
+        loadGlobeBtn: '加载火星球',
+        clearGlobeBtn: '清空点位',
+        downloadBtn: '导出 JSON',
+        controlFlowTitle: '推荐演示顺序',
+        controlFlowDesc: '热图加载 → 火星球映射 → 时间轴切换 → 专题说明，形成从数据到解释的完整叙事链。',
+        controlTipTitle: '提示',
+        controlTipDesc: '推荐先加载全局热图，再将结果映射到 3D 火星球，最后结合专题说明形成完整展示链路。',
+        leftPanelBadge: '实时空间注释',
+        leftPanelTitle: '空间分析',
+        left1Title: '热图状态',
+        left2Title: '数值范围',
+        left3Title: '解释建议',
+        left3Desc: '可突出高纬区域、对比南北差异或过渡带分布，帮助评委快速理解空间结构。',
+        leftFactorBadge: '答辩讲解重点',
+        leftFactorTitle: '展示建议',
+        flow1Title: '先看全球分布',
+        flow1Desc: '通过二维热图先解释整体空间格局，再切到 3D 火星球强化沉浸感。',
+        flow2Title: '再讲关键区域',
+        flow2Desc: '聚焦高纬、极区或异常带，结合图例和区域提示讲清空间差异。',
+        flow3Title: '最后引出专题',
+        flow3Desc: '自然过渡到差值分析、因子联动和 MY34 沙尘暴专题，体现平台扩展性。',
+        globeBadge: '交互火星舞台',
+        globeTitle: '3D 火星球',
+        globeInfo1: '当前年份',
+        globeInfo2: '当前 Sol',
+        globeInfo3: '点位数量',
+        timelineMetaPrefix: 'Sol:',
+        timelineMark1: 'MY34 起点',
+        timelineMark2: '春分',
+        timelineMark3: '沙尘暴峰值',
+        timelineMark4: '夏至',
+        timelineMark5: 'MY34 结束',
+        legendDockTitle: '臭氧密度',
+        dockToggle1: '热图',
+        dockToggle2: '网格',
+        heatmapBadge: '二维证据层',
+        heatmapTitle: '全球热图',
+        heatmapTag: '二维视图',
+        heatmapInfo1: '范围',
+        heatmapInfo2: '网格规模',
+        legendBadge: '图例说明层',
+        legendTitle: '色标图例',
+        legendTag: '图例',
+        legendLow: '低值',
+        legendMid: '中值',
+        legendHigh: '高值',
+        legendNoteTitle: '说明',
+        legendNoteDesc: '颜色从深色到亮暖色表示臭氧值从低到高，适合在热图与火星球点位上统一表达。',
+        topicBadge: '未来专题层',
+        topicTitle: '专题预留',
+        topicTag: '未来专题',
+        topic1Title: '差值分析',
+        topic1Desc: '支持不同时间、不同火星年或不同模型结果之间的差值对比。',
+        topic1State: '前端占位 · 后端待新增',
+        topic2Title: '因子联动',
+        topic2Desc: '预留臭氧与气象因子的联动分析模块，强化科研解释深度。',
+        topic2State: '前端占位 · 后端待新增',
+        topic3Title: 'MY34 沙尘暴专题',
+        topic3Desc: '围绕 MY34 全球沙尘暴事件构建前后对比与影响分析专题页。',
+        topic3State: '专题页预留 · 适合比赛展示',
+        alertBadge: '区域提示层',
+        alertTitle: '区域提示',
+        alertTag: '区域告警',
+        alert1Kicker: '低值提示',
+        alert1Title: 'Hellas Basin Region',
+        alert1Desc: '臭氧低值区可作为异常区域讲解入口，用于说明空间差异与潜在环境风险。',
+        alert2Kicker: '观察说明',
+        alert2Title: 'Polar Vortex Shift',
+        alert2Desc: '可结合极区或高纬点位变化，解释臭氧在全球空间中的迁移与聚集特征。',
+        profileBadge: '大气背景层',
+        profileTitle: '大气背景',
+        reportBadge: '导出与叙事层',
+        reportTitle: '导出与讲解',
+        reportDesc: '当前可导出热图 JSON 结果；后续可扩展为专题报告、区域截图与差值分析说明文档。',
+        reportBtn: '导出当前分析结果',
+        online: '在线',
+        offline: '离线',
+        gridLoaded: '已加载',
+        gridNotLoaded: '未加载',
+        gridLoadSuccess: '热图数据已加载',
+        globeLoadSuccess: '火星球可视化完成',
+        clearSuccess: '已清空点位',
+        exportSuccess: '已导出当前热图结果',
+        needGridFirst: '请先加载热图数据',
+        gridFail: '加载热图失败',
+        globeFail: '加载火星球失败',
+        rangeSummary: '当前热图范围：{range}',
+        gridSummary: '当前数据已完成网格加载，可用于二维热图与三维火星球展示。',
+        gridSummaryEmpty: '当前尚未加载全局网格数据。',
+        shapeSummary: '{rows} × {cols}'
+      },
+      en: {
+        brandTitle: 'Mars Ozone Intelligence Platform',
+        brandSub: 'Deep-space Forecast Platform',
+        navHome: 'Home / Overview',
+        navPredict: 'Ozone Forecast',
+        navExplorer: 'Exploration',
+        navMetrics: 'Model Evaluation',
+        navAssistant: 'AI Assistant',
+        explorerBadge: 'Mars Spatial Explorer',
+        explorerTitle: 'Spatiotemporal Visualization / Exploration',
+        explorerDesc: 'An interpretive visualization stage built around the 3D Mars globe, global heatmaps, temporal evolution and reserved topics, helping judges understand spatial structure, trend changes and research extensions.',
+        heroMetric1Label: 'Data Status',
+        heroMetric1Sub: 'Global grid loading result',
+        heroMetric2Label: 'API Status',
+        heroMetric2Sub: 'Backend health check',
+        heroMetric3Label: 'Topic Extension',
+        heroMetric3Sub: 'Dust storm topic reserved',
+        heroFeature1Title: 'Global spatial display',
+        heroFeature1Desc: 'Supports linked 2D heatmap and 3D globe display, ideal for quickly establishing platform feeling in a demo.',
+        heroFeature2Title: 'Temporal storytelling',
+        heroFeature2Desc: 'Uses a timeline and key milestones to reserve narrative space for MY34 and other topic stories.',
+        heroFeature3Title: 'Scientific expansion',
+        heroFeature3Desc: 'Difference analysis, factor linkage and the dust-storm topic can extend scientific explanation and competition highlights.',
+        controlBadge: 'Visual Console',
+        controlTitle: 'Visualization Console',
+        fillDemoBtn: 'Fill Demo',
+        labelYear: 'Martian Year',
+        labelSol: 'Sol',
+        loadGridBtn: 'Load Heatmap',
+        loadGlobeBtn: 'Load Mars Globe',
+        clearGlobeBtn: 'Clear Points',
+        downloadBtn: 'Export JSON',
+        controlFlowTitle: 'Suggested demo flow',
+        controlFlowDesc: 'Load heatmap → map to globe → switch the timeline → explain future topics, forming a complete story from data to interpretation.',
+        controlTipTitle: 'Tip',
+        controlTipDesc: 'A good demo flow is heatmap first, then map the data onto the 3D Mars globe, and finally explain future topic pages.',
+        leftPanelBadge: 'Live Spatial Notes',
+        leftPanelTitle: 'Spatial Analysis',
+        left1Title: 'Heatmap Status',
+        left2Title: 'Value Range',
+        left3Title: 'Interpretation Tip',
+        left3Desc: 'Emphasize high-latitude zones, north-south contrast, or transition belts to help judges understand the spatial pattern.',
+        leftFactorBadge: 'Explainer Focus',
+        leftFactorTitle: 'Presentation Notes',
+        flow1Title: 'Start with global pattern',
+        flow1Desc: 'Use the 2D heatmap to explain the global structure first, then switch to the 3D globe for immersion.',
+        flow2Title: 'Then discuss key regions',
+        flow2Desc: 'Focus on high latitudes, polar areas or anomaly belts, using the legend and regional notes to explain spatial differences.',
+        flow3Title: 'Finish with future topics',
+        flow3Desc: 'Transition naturally to difference analysis, factor linkage and the MY34 dust-storm topic to show extensibility.',
+        globeBadge: 'Interactive Mars Stage',
+        globeTitle: '3D Mars Globe',
+        globeInfo1: 'Current Year',
+        globeInfo2: 'Current Sol',
+        globeInfo3: 'Point Count',
+        timelineMetaPrefix: 'Sol:',
+        timelineMark1: 'Start MY34',
+        timelineMark2: 'Equinox',
+        timelineMark3: 'Dust Peak',
+        timelineMark4: 'Solstice',
+        timelineMark5: 'End MY34',
+        legendDockTitle: 'Ozone Density',
+        dockToggle1: 'Heatmap',
+        dockToggle2: 'Grid',
+        heatmapBadge: '2D Evidence Layer',
+        heatmapTitle: 'Global Heatmap',
+        heatmapTag: '2D View',
+        heatmapInfo1: 'Range',
+        heatmapInfo2: 'Grid Shape',
+        legendBadge: 'Interpretive Legend',
+        legendTitle: 'Color Legend',
+        legendTag: 'Legend',
+        legendLow: 'Low',
+        legendMid: 'Mid',
+        legendHigh: 'High',
+        legendNoteTitle: 'Note',
+        legendNoteDesc: 'Colors map from dark to warm bright tones, representing ozone values from low to high across both heatmap and globe.',
+        topicBadge: 'Future Topic Layer',
+        topicTitle: 'Topic Reserve',
+        topicTag: 'Future Topics',
+        topic1Title: 'Difference Analysis',
+        topic1Desc: 'Supports comparison between different times, different Martian years, or different model outputs.',
+        topic1State: 'Frontend placeholder · backend pending',
+        topic2Title: 'Factor Linkage',
+        topic2Desc: 'Reserves a linkage module between ozone and meteorological factors for deeper scientific explanation.',
+        topic2State: 'Frontend placeholder · backend pending',
+        topic3Title: 'MY34 Dust Storm Topic',
+        topic3Desc: 'Build a dedicated comparison page around the MY34 global dust storm event and its ozone impact.',
+        topic3State: 'Topic page reserved · suitable for competition showcase',
+        alertBadge: 'Regional Notes',
+        alertTitle: 'Regional Alerts',
+        alertTag: 'Alerts',
+        alert1Kicker: 'Low Density Warning',
+        alert1Title: 'Hellas Basin Region',
+        alert1Desc: 'Low-ozone areas can serve as anomaly entry points to explain spatial differences and potential environmental risk.',
+        alert2Kicker: 'Observation Note',
+        alert2Title: 'Polar Vortex Shift',
+        alert2Desc: 'Use polar or high-latitude point changes to explain ozone migration and concentration patterns globally.',
+        profileBadge: 'Atmosphere Context',
+        profileTitle: 'Atmospheric Profile',
+        reportBadge: 'Export & Storytelling',
+        reportTitle: 'Export & Narrative',
+        reportDesc: 'The current page exports grid JSON; it can later extend to topic reports, region screenshots and difference-analysis narratives.',
+        reportBtn: 'Export current analysis',
+        online: 'Online',
+        offline: 'Offline',
+        gridLoaded: 'Loaded',
+        gridNotLoaded: 'Not loaded',
+        gridLoadSuccess: 'Heatmap data loaded',
+        globeLoadSuccess: 'Mars globe rendered',
+        clearSuccess: 'Points cleared',
+        exportSuccess: 'Current grid result exported',
+        needGridFirst: 'Please load grid data first',
+        gridFail: 'Failed to load heatmap',
+        globeFail: 'Failed to load Mars globe',
+        rangeSummary: 'Current heatmap range: {range}',
+        gridSummary: 'Global grid data has been loaded and can now support both 2D heatmap and 3D globe display.',
+        gridSummaryEmpty: 'Global gridded data has not been loaded yet.',
+        shapeSummary: '{rows} × {cols}'
+      }
+    };
+
+    const state = {
+      lang: localStorage.getItem('marsLang') || 'zh',
+      gridData: null,
+      viewer: null,
+      entities: []
+    };
+
+    function t(key) {
+      return (messages[state.lang] && messages[state.lang][key]) || key;
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = state.lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
+      });
+
+      document.getElementById('langZh').className =
+        state.lang === 'zh' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
+      document.getElementById('langEn').className =
+        state.lang === 'en' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
+
+      refreshStaticSummaries();
+    }
+
+    function showToast(message, isError = false) {
+      const old = document.getElementById('toast');
+      if (old) old.remove();
+      const div = document.createElement('div');
+      div.id = 'toast';
+      div.className = 'toast';
+      div.style.borderColor = isError ? 'rgba(244,63,94,0.25)' : 'rgba(19,164,236,0.25)';
+      div.textContent = message;
+      document.body.appendChild(div);
+      setTimeout(() => {
+        const el = document.getElementById('toast');
+        if (el) el.remove();
+      }, 2400);
+    }
+
+    function fillDemoValues() {
+      document.getElementById('yearInput').value = 'MY27';
+      document.getElementById('solInput').value = 120;
+    }
+
+    async function apiPost(path, payload) {
+      const res = await fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (!res.ok || json.code !== 0) throw new Error(json.message || 'Request failed');
+      return json.data;
+    }
+
+    async function checkHealth() {
+      const candidates = [`${API_BASE}/health`, '/api/health'];
+      const apiStatus = document.getElementById('apiStatus');
+      const heroApi = document.getElementById('heroApi');
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (res.ok && data.code === 0) {
+            apiStatus.textContent = t('online');
+            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
+            heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
+            return;
+          }
+        } catch (e) {}
+      }
+      apiStatus.textContent = t('offline');
+      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
+      heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
+    }
+
+    function colorScaleCss(tValue) {
+      const stops = [[9,19,39],[27,56,92],[51,181,255],[186,81,43],[255,123,84],[255,211,112]];
+      const p = Math.max(0, Math.min(1, tValue)) * (stops.length - 1);
+      const i = Math.floor(p);
+      const f = p - i;
+      const a = stops[i];
+      const b = stops[Math.min(i + 1, stops.length - 1)];
+      return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)}, ${Math.round(a[1] + (b[1] - a[1]) * f)}, ${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+    }
+
+    function colorScaleCesium(tValue) {
+      const css = colorScaleCss(tValue).match(/\d+/g).map(Number);
+      return new Cesium.Color(css[0] / 255, css[1] / 255, css[2] / 255, 0.95);
+    }
+
+    function getGridMinMax(grid) {
+      let min = Infinity;
+      let max = -Infinity;
+      grid.forEach(row => row.forEach(v => {
+        if (Number.isFinite(v)) {
+          min = Math.min(min, v);
+          max = Math.max(max, v);
+        }
+      }));
+      return { min, max };
+    }
+
+    function renderHeatmap(grid) {
+      const canvas = document.getElementById('heatmapCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!Array.isArray(grid) || !grid.length) return;
+
+      const { min, max } = getGridMinMax(grid);
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const cellW = canvas.width / cols;
+      const cellH = canvas.height / rows;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const value = grid[r][c];
+          const ratio = (value - min) / ((max - min) || 1);
+          ctx.fillStyle = colorScaleCss(ratio);
+          ctx.fillRect(c * cellW, r * cellH, cellW + 1, cellH + 1);
+        }
+      }
+
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.font = '14px Space Grotesk, sans-serif';
+      ctx.fillText(`Range: ${min.toFixed(3)} ~ ${max.toFixed(3)}`, 16, 24);
+      document.getElementById('heatmapRange').textContent = `${min.toFixed(3)} ~ ${max.toFixed(3)}`;
+      document.getElementById('heatmapShape').textContent = t('shapeSummary').replace('{rows}', rows).replace('{cols}', cols);
+    }
+
+    function initViewer() {
+      if (state.viewer) return;
+      state.viewer = new Cesium.Viewer('marsViewer', {
+        animation: false,
+        timeline: false,
+        baseLayerPicker: false,
+        geocoder: false,
+        homeButton: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        selectionIndicator: false,
+        fullscreenButton: false,
+        terrainProvider: new Cesium.EllipsoidTerrainProvider()
+      });
+      state.viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#1a0f0a');
+      state.viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#050912');
+      state.viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(0, 15, 18000000) });
+    }
+
+    function clearGlobeEntities(showMsg = true) {
+      if (!state.viewer) return;
+      state.entities.forEach(item => state.viewer.entities.remove(item));
+      state.entities = [];
+      document.getElementById('globeCount').textContent = '0';
+      if (showMsg) showToast(t('clearSuccess'));
+    }
+
+    async function loadGridData() {
+      const payload = {
+        martian_year: document.getElementById('yearInput').value,
+        sol: parseInt(document.getElementById('solInput').value, 10)
+      };
+      const data = await apiPost('/predict/grid', payload);
+      state.gridData = data;
+      renderHeatmap(data.grid || []);
+      document.getElementById('gridStatusHero').textContent = t('gridLoaded');
+      document.getElementById('globeYear').textContent = payload.martian_year;
+      document.getElementById('globeSol').textContent = payload.sol;
+      refreshStaticSummaries();
+      return data;
+    }
+
+    async function handleLoadGrid() {
+      try {
+        await loadGridData();
+        showToast(t('gridLoadSuccess'));
+      } catch (e) {
+        showToast(`${t('gridFail')}：${e.message}`, true);
+      }
+    }
+
+    async function handleLoadGlobe() {
+      try {
+        initViewer();
+        const data = state.gridData || await loadGridData();
+        clearGlobeEntities(false);
+        const grid = data.grid || [];
+        const lats = data.lats || [];
+        const lons = data.lons || [];
+        const { min, max } = getGridMinMax(grid);
+        for (let i = 0; i < grid.length; i++) {
+          for (let j = 0; j < grid[i].length; j++) {
+            const value = grid[i][j];
+            const ratio = (value - min) / ((max - min) || 1);
+            const entity = state.viewer.entities.add({
+              position: Cesium.Cartesian3.fromDegrees(lons[j], lats[i]),
+              point: {
+                pixelSize: 6,
+                color: colorScaleCesium(ratio),
+                outlineColor: Cesium.Color.BLACK.withAlpha(0.25),
+                outlineWidth: 1
+              },
+              description: `<div style="padding:6px 4px;"><div><strong>Lat:</strong> ${lats[i]}</div><div><strong>Lon:</strong> ${lons[j]}</div><div><strong>Ozone:</strong> ${value}</div></div>`
+            });
+            state.entities.push(entity);
+          }
+        }
+        state.viewer.zoomTo(state.viewer.entities);
+        document.getElementById('globeCount').textContent = state.entities.length;
+        showToast(t('globeLoadSuccess'));
+      } catch (e) {
+        showToast(`${t('globeFail')}：${e.message}`, true);
+      }
+    }
+
+    function downloadGridJson() {
+      if (!state.gridData) {
+        showToast(t('needGridFirst'), true);
+        return;
+      }
+      const blob = new Blob([JSON.stringify(state.gridData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mars_explorer_grid.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(t('exportSuccess'));
+    }
+
+    function refreshStaticSummaries() {
+      const summary = document.getElementById('leftGridSummary');
+      const rangeSummary = document.getElementById('leftRangeSummary');
+      if (!state.gridData || !state.gridData.grid || !state.gridData.grid.length) {
+        summary.textContent = t('gridSummaryEmpty');
+        rangeSummary.textContent = '--';
+        return;
+      }
+      const { min, max } = getGridMinMax(state.gridData.grid);
+      summary.textContent = t('gridSummary');
+      rangeSummary.textContent = t('rangeSummary').replace('{range}', `${min.toFixed(3)} ~ ${max.toFixed(3)}`);
+    }
+
+    document.getElementById('fillDemoBtn').addEventListener('click', fillDemoValues);
+    document.getElementById('loadGridBtn').addEventListener('click', handleLoadGrid);
+    document.getElementById('loadGlobeBtn').addEventListener('click', handleLoadGlobe);
+    document.getElementById('clearGlobeBtn').addEventListener('click', () => clearGlobeEntities(true));
+    document.getElementById('downloadBtn').addEventListener('click', downloadGridJson);
+    document.getElementById('reportBtn').addEventListener('click', downloadGridJson);
+
+    document.getElementById('langZh').addEventListener('click', () => {
+      state.lang = 'zh';
+      localStorage.setItem('marsLang', 'zh');
+      applyI18n();
+      checkHealth();
+    });
+
+    document.getElementById('langEn').addEventListener('click', () => {
+      state.lang = 'en';
+      localStorage.setItem('marsLang', 'en');
+      applyI18n();
+      checkHealth();
+    });
+
+    fillDemoValues();
+    applyI18n();
+    checkHealth();
+    initViewer();
+  </script>
+</body>
+</html>

@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mars Ozone Platform - Model Credibility</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#13a4ec',
+            accent: '#ff7b54',
+            shell: '#071015',
+            panel: '#0d1820',
+            line: '#1f2c35'
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 0 64px rgba(19,164,236,0.18)',
+            card: '0 22px 72px rgba(0,0,0,0.34)',
+            soft: '0 10px 30px rgba(0,0,0,0.28)'
+          },
+          backgroundImage: {
+            'space-shell': 'radial-gradient(circle at 16% 16%, rgba(19,164,236,0.14), transparent 24%), radial-gradient(circle at 84% 18%, rgba(255,123,84,0.15), transparent 22%), radial-gradient(circle at 50% 100%, rgba(19,164,236,0.08), transparent 36%), linear-gradient(145deg, #071015 0%, #09131a 45%, #0d1720 100%)',
+            'hero-shell': 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), radial-gradient(circle at 20% 24%, rgba(19,164,236,0.18), transparent 24%), radial-gradient(circle at 82% 18%, rgba(255,123,84,0.18), transparent 22%)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root { color-scheme: dark; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(19,164,236,0.10), transparent 30%),
+        radial-gradient(circle at 18% 10%, rgba(255,123,84,0.08), transparent 18%),
+        #071015;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(to bottom, rgba(255,255,255,0.95), transparent 94%);
+    }
+    .glass {
+      background: rgba(7,16,21,0.68);
+      backdrop-filter: blur(18px);
+    }
+    .panel-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(16,28,36,0.94), rgba(10,18,24,0.92));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 22px 72px rgba(0,0,0,0.34);
+      backdrop-filter: blur(18px);
+    }
+    .panel-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 24%);
+    }
+    .metric-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(19,164,236,0.5), transparent);
+      opacity: 0.65;
+    }
+    .hud-line {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(19,164,236,0.85), rgba(19,164,236,0));
+    }
+    .judge-note {
+      background: linear-gradient(180deg, rgba(19,164,236,0.10), rgba(19,164,236,0.04));
+      border: 1px solid rgba(19,164,236,0.18);
+    }
+    .trust-dot {
+      box-shadow: 0 0 0 6px rgba(19,164,236,0.08), 0 0 24px rgba(19,164,236,0.24);
+    }
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9999;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: white;
+      background: rgba(4,9,13,0.82);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body class="bg-shell text-slate-100 antialiased">
+  <div class="relative min-h-screen overflow-x-hidden bg-space-shell">
+    <div class="pointer-events-none absolute inset-0 grid-bg opacity-25"></div>
+    <div class="pointer-events-none absolute left-1/2 top-[-10rem] h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[150px]"></div>
+    <div class="pointer-events-none absolute right-[-8rem] top-[10rem] h-[24rem] w-[24rem] rounded-full bg-accent/10 blur-[130px]"></div>
+
+    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071015]/72 backdrop-blur-2xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
+        <a href="index.html" class="flex items-center gap-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-soft">
+            <span class="material-symbols-outlined text-[28px]">deployed_code</span>
+          </div>
+          <div>
+            <div class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</div>
+            <div class="text-xs uppercase tracking-[0.22em] text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</div>
+          </div>
+        </a>
+
+        <nav class="hidden items-center gap-6 xl:flex">
+          <a href="index.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navHome">首页</a>
+          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navPredict">臭氧预测</a>
+          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navExplorer">时空可视化</a>
+          <a href="metrics.html" class="text-sm font-medium text-primary" data-i18n="navMetrics">模型评估</a>
+          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navAssistant">智能助手</a>
+          <a href="governance.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navGovernance">数据治理</a>
+          <a href="science.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navScience">科普中心</a>
+          <a href="user.html" class="text-sm text-slate-300 transition hover:text-white" data-i18n="navUser">用户中心</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
+            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
+            <span>API</span>
+            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
+          </div>
+
+          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
+            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
+            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
+      <section class="panel-card rounded-[2rem] bg-hero-shell p-6 lg:p-8">
+        <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <span class="material-symbols-outlined text-[16px]">verified</span>
+              <span data-i18n="metricsBadge">Model Credibility</span>
+            </div>
+
+            <h1 class="mt-5 max-w-4xl text-4xl font-bold leading-[1.05] tracking-tight text-white lg:text-6xl" data-i18n="metricsTitle">
+              模型评估 / 可信度
+            </h1>
+            <p class="mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="metricsDesc">
+              从总体指标、拟合分布、残差稳定性和解释层四个维度，说明模型预测结果是否可靠、可靠到什么程度，以及在比赛答辩中该如何被清晰表达。
+            </p>
+
+            <div class="mt-7 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-3xl border border-white/10 bg-black/20 p-5 backdrop-blur">
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="heroMetric1Label">当前版本</div>
+                <div class="mt-3 text-3xl font-bold text-white" id="modelVersionText">Real-v1</div>
+                <div class="mt-2 text-sm text-slate-400" data-i18n="heroMetric1Sub">当前接入版本</div>
+              </div>
+              <div class="rounded-3xl border border-white/10 bg-black/20 p-5 backdrop-blur">
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="heroMetric2Label">接口状态</div>
+                <div class="mt-3 text-3xl font-bold text-white" id="heroApi">--</div>
+                <div class="mt-2 text-sm text-slate-400" data-i18n="heroMetric2Sub">后端健康检查</div>
+              </div>
+              <div class="rounded-3xl border border-white/10 bg-black/20 p-5 backdrop-blur">
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="heroMetric3Label">可信度摘要</div>
+                <div class="mt-3 text-3xl font-bold text-white" id="credibilityLevel">--</div>
+                <div class="mt-2 text-sm text-slate-400" data-i18n="heroMetric3Sub">根据指标自动判断</div>
+              </div>
+            </div>
+
+            <div class="mt-8 rounded-3xl border border-white/10 bg-black/20 p-4">
+              <div class="flex flex-wrap items-center gap-4 text-xs uppercase tracking-[0.22em] text-slate-400">
+                <span data-i18n="hud1">Evaluation Stream</span>
+                <span class="h-1.5 w-1.5 rounded-full bg-primary trust-dot"></span>
+                <span data-i18n="hud2">Scatter Alignment</span>
+                <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+                <span data-i18n="hud3">Residual Stability</span>
+              </div>
+              <div class="my-4 hud-line"></div>
+              <div class="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hudMetric1">Judge Focus</div>
+                  <div class="mt-2 text-sm text-slate-200" data-i18n="hudMetric1Desc">结果是否可信、误差是否稳定、模型边界是否讲清。</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hudMetric2">Current Source</div>
+                  <div class="mt-2 text-sm text-slate-200" data-i18n="hudMetric2Desc">总体指标接口 + 散点接口 + 残差接口联动展示。</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hudMetric3">Narrative Goal</div>
+                  <div class="mt-2 text-sm text-slate-200" data-i18n="hudMetric3Desc">从数字到图形再到解释层，形成完整可信闭环。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            <div class="panel-card rounded-3xl p-5">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.22em] text-slate-400" data-i18n="controlBadge">Evaluation Console</div>
+                  <h2 class="mt-2 text-xl font-bold text-white" data-i18n="controlTitle">评估面板</h2>
+                </div>
+                <button id="refreshMetricsBtn" class="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-primary/15" data-i18n="refreshBtn">刷新指标</button>
+              </div>
+
+              <div class="mt-5 space-y-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                    <span class="material-symbols-outlined text-[18px] text-primary">monitoring</span>
+                    <span data-i18n="controlItem1Title">总体指标</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="controlItem1Desc">用 R²、MSE、MAE、RMSE 评估整体拟合效果和误差水平。</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                    <span class="material-symbols-outlined text-[18px] text-primary">scatter_plot</span>
+                    <span data-i18n="controlItem2Title">拟合分析</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="controlItem2Desc">通过真实值与预测值散点分布判断模型的拟合趋势与偏差模式。</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                    <span class="material-symbols-outlined text-[18px] text-primary">insights</span>
+                    <span data-i18n="controlItem3Title">残差分析</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="controlItem3Desc">通过残差柱状图辅助说明模型误差是否稳定，是否存在异常点或系统性偏差。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="judge-note rounded-3xl p-5">
+              <div class="mb-2 flex items-center gap-2 text-sm text-primary">
+                <span class="material-symbols-outlined text-[18px]">campaign</span>
+                <span data-i18n="judgeTitle">答辩表达建议</span>
+              </div>
+              <p class="text-sm leading-7 text-slate-200" data-i18n="judgeDesc">先展示整体指标，再说明散点对齐程度与残差稳定性，最后补充模型边界、版本演进和后续优化计划，让评委感知“结果可信且团队理解模型局限”。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="metric-card rounded-3xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400">R²</div>
+          <div class="mt-3 text-4xl font-bold text-white" id="metricR2">--</div>
+          <div class="mt-3 text-sm text-slate-400" data-i18n="metricR2Desc">拟合优度，越接近 1 越好</div>
+        </div>
+        <div class="metric-card rounded-3xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400">MSE</div>
+          <div class="mt-3 text-4xl font-bold text-white" id="metricMSE">--</div>
+          <div class="mt-3 text-sm text-slate-400" data-i18n="metricMSEDesc">均方误差，越低越好</div>
+        </div>
+        <div class="metric-card rounded-3xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400">MAE</div>
+          <div class="mt-3 text-4xl font-bold text-white" id="metricMAE">--</div>
+          <div class="mt-3 text-sm text-slate-400" data-i18n="metricMAEDesc">平均绝对误差，越低越好</div>
+        </div>
+        <div class="metric-card rounded-3xl p-6">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400">RMSE</div>
+          <div class="mt-3 text-4xl font-bold text-white" id="metricRMSE">--</div>
+          <div class="mt-3 text-sm text-slate-400" data-i18n="metricRMSEDesc">均方根误差，越低越好</div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+        <div class="panel-card rounded-3xl p-6">
+          <div class="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <div class="text-xs uppercase tracking-[0.22em] text-slate-400" data-i18n="scatterBadge">Scatter Insight</div>
+              <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="scatterTitle">拟合分析 / 散点图</h3>
+            </div>
+            <span class="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="scatterTag">Scatter Analysis</span>
+          </div>
+          <div class="h-[380px]"><canvas id="scatterChart"></canvas></div>
+          <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-400" data-i18n="scatterExplain">如果散点主要沿对角趋势分布，说明预测值与真实值的一致性较高；若高值区或低值区明显偏离，则意味着该区间仍需针对性优化。</div>
+        </div>
+
+        <div class="panel-card rounded-3xl p-6">
+          <div class="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <div class="text-xs uppercase tracking-[0.22em] text-slate-400" data-i18n="residualBadge">Residual Stability</div>
+              <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="residualTitle">残差分析</h3>
+            </div>
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="residualTag">Residual Distribution</span>
+          </div>
+          <div class="h-[380px]"><canvas id="residualChart"></canvas></div>
+          <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-400" data-i18n="residualExplain">残差越集中、极端峰值越少，说明模型误差更稳定；若出现明显异常柱，则在答辩中应主动说明数据分布差异、样本稀疏区或极端场景影响。</div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 xl:grid-cols-[1fr_0.92fr]">
+        <div class="panel-card rounded-3xl p-6">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.22em] text-slate-400" data-i18n="trustBadge">Trust Matrix</div>
+              <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="trustTitle">可信度说明</h3>
+            </div>
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="trustTag">Interpretability Layer</span>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-3 flex items-center gap-2 text-white">
+                <span class="material-symbols-outlined text-[18px] text-primary">check_circle</span>
+                <span class="font-semibold" data-i18n="trust1Title">为什么可信</span>
+              </div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="trust1Desc">当 R² 较高且 MAE、RMSE 较低时，说明模型整体拟合效果较好，预测结果具有较强参考价值。</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-3 flex items-center gap-2 text-white">
+                <span class="material-symbols-outlined text-[18px] text-primary">equalizer</span>
+                <span class="font-semibold" data-i18n="trust2Title">如何解释散点图</span>
+              </div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="trust2Desc">如果散点主要沿对角趋势分布，说明预测值与真实值一致性较高；偏离越大，拟合越弱。</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-3 flex items-center gap-2 text-white">
+                <span class="material-symbols-outlined text-[18px] text-primary">warning</span>
+                <span class="font-semibold" data-i18n="trust3Title">如何解释残差</span>
+              </div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="trust3Desc">残差整体分布越集中、异常峰值越少，说明模型误差更稳定；若存在明显异常区间，则需进一步解释。</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-primary/15 bg-primary/5 p-5">
+            <div class="mb-3 flex items-center gap-2 text-primary">
+              <span class="material-symbols-outlined text-[18px]">notes</span>
+              <span class="font-medium" data-i18n="trustSummaryTitle">评委可直接理解的总结</span>
+            </div>
+            <p class="text-sm leading-7 text-slate-300" data-i18n="trustSummaryDesc">这一页的作用不是只“展示指标”，而是把模型好不好、误差稳不稳、当前结果能否作为科学参考讲明白，让平台不仅有预测能力，也有解释能力。</p>
+          </div>
+        </div>
+
+        <div class="panel-card rounded-3xl p-6">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.22em] text-slate-400" data-i18n="compareBadge">Version Strategy</div>
+              <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="compareTitle">模型对比预留</h3>
+            </div>
+            <span class="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="compareTag">Future-ready</span>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <span data-i18n="compare1">当前接入模型</span>
+              <span class="text-primary">Active</span>
+            </div>
+            <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <span data-i18n="compare2">新模型版本切换</span>
+              <span class="text-slate-400" data-i18n="reserved">预留</span>
+            </div>
+            <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <span data-i18n="compare3">版本对比评估</span>
+              <span class="text-slate-400" data-i18n="reserved">预留</span>
+            </div>
+            <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <span data-i18n="compare4">可信度阈值解释</span>
+              <span class="text-slate-400" data-i18n="reserved">预留</span>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-4 md:grid-cols-2">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                <span class="material-symbols-outlined text-[18px] text-primary">flag</span>
+                <span data-i18n="roadmap1Title">当前状态</span>
+              </div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="roadmap1Desc">已接入 metrics/model、metrics/scatter、metrics/residual，可直接形成可信度展示链。</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                <span class="material-symbols-outlined text-[18px] text-primary">rocket_launch</span>
+                <span data-i18n="roadmap2Title">后续演进</span>
+              </div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="roadmap2Desc">接入新模型后，可扩展版本切换、指标对比和不同任务场景的可信阈值解释。</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="mb-2 flex items-center gap-2 text-sm text-slate-300">
+              <span class="material-symbols-outlined text-[18px] text-primary">lightbulb</span>
+              <span data-i18n="compareTipTitle">展示建议</span>
+            </div>
+            <p class="text-sm leading-7 text-slate-400" data-i18n="compareTipDesc">比赛现场可先展示总体指标，再切到散点图和残差图，最后说明模型版本切换与后续优化空间。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000/api';
+
+    const messages = {
+      zh: {
+        brandTitle: '火星臭氧智能预报平台',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: '首页',
+        navPredict: '臭氧预测',
+        navExplorer: '时空可视化',
+        navMetrics: '模型评估',
+        navAssistant: '智能助手',
+        navGovernance: '数据治理',
+        navScience: '科普中心',
+        navUser: '用户中心',
+        metricsBadge: 'Model Credibility',
+        metricsTitle: '模型评估 / 可信度',
+        metricsDesc: '从总体指标、拟合分布、残差稳定性和解释层四个维度，说明模型预测结果是否可靠、可靠到什么程度，以及在比赛答辩中该如何被清晰表达。',
+        heroMetric1Label: '当前版本',
+        heroMetric1Sub: '当前接入版本',
+        heroMetric2Label: '接口状态',
+        heroMetric2Sub: '后端健康检查',
+        heroMetric3Label: '可信度摘要',
+        heroMetric3Sub: '根据指标自动判断',
+        hud1: '评估链路',
+        hud2: '散点对齐',
+        hud3: '残差稳定性',
+        hudMetric1: '评委关注点',
+        hudMetric1Desc: '结果是否可信、误差是否稳定、模型边界是否讲清。',
+        hudMetric2: '当前数据源',
+        hudMetric2Desc: '总体指标接口 + 散点接口 + 残差接口联动展示。',
+        hudMetric3: '叙事目标',
+        hudMetric3Desc: '从数字到图形再到解释层，形成完整可信闭环。',
+        controlBadge: 'Evaluation Console',
+        controlTitle: '评估面板',
+        refreshBtn: '刷新指标',
+        controlItem1Title: '总体指标',
+        controlItem1Desc: '用 R²、MSE、MAE、RMSE 评估整体拟合效果和误差水平。',
+        controlItem2Title: '拟合分析',
+        controlItem2Desc: '通过真实值与预测值散点分布判断模型的拟合趋势与偏差模式。',
+        controlItem3Title: '残差分析',
+        controlItem3Desc: '通过残差柱状图辅助说明模型误差是否稳定，是否存在异常点或系统性偏差。',
+        judgeTitle: '答辩表达建议',
+        judgeDesc: '先展示整体指标，再说明散点对齐程度与残差稳定性，最后补充模型边界、版本演进和后续优化计划，让评委感知“结果可信且团队理解模型局限”。',
+        metricR2Desc: '拟合优度，越接近 1 越好',
+        metricMSEDesc: '均方误差，越低越好',
+        metricMAEDesc: '平均绝对误差，越低越好',
+        metricRMSEDesc: '均方根误差，越低越好',
+        scatterBadge: 'Scatter Insight',
+        scatterTitle: '拟合分析 / 散点图',
+        scatterTag: '散点分析',
+        scatterExplain: '如果散点主要沿对角趋势分布，说明预测值与真实值的一致性较高；若高值区或低值区明显偏离，则意味着该区间仍需针对性优化。',
+        residualBadge: 'Residual Stability',
+        residualTitle: '残差分析',
+        residualTag: '残差分布',
+        residualExplain: '残差越集中、极端峰值越少，说明模型误差更稳定；若出现明显异常柱，则在答辩中应主动说明数据分布差异、样本稀疏区或极端场景影响。',
+        trustBadge: 'Trust Matrix',
+        trustTitle: '可信度说明',
+        trustTag: '解释层',
+        trust1Title: '为什么可信',
+        trust1Desc: '当 R² 较高且 MAE、RMSE 较低时，说明模型整体拟合效果较好，预测结果具有较强参考价值。',
+        trust2Title: '如何解释散点图',
+        trust2Desc: '如果散点主要沿对角趋势分布，说明预测值与真实值一致性较高；偏离越大，拟合越弱。',
+        trust3Title: '如何解释残差',
+        trust3Desc: '残差整体分布越集中、异常峰值越少，说明模型误差更稳定；若存在明显异常区间，则需进一步解释。',
+        trustSummaryTitle: '评委可直接理解的总结',
+        trustSummaryDesc: '这一页的作用不是只“展示指标”，而是把模型好不好、误差稳不稳、当前结果能否作为科学参考讲明白，让平台不仅有预测能力，也有解释能力。',
+        compareBadge: 'Version Strategy',
+        compareTitle: '模型对比预留',
+        compareTag: '后续扩展',
+        compare1: '当前接入模型',
+        compare2: '新模型版本切换',
+        compare3: '版本对比评估',
+        compare4: '可信度阈值解释',
+        reserved: '预留',
+        roadmap1Title: '当前状态',
+        roadmap1Desc: '已接入 metrics/model、metrics/scatter、metrics/residual，可直接形成可信度展示链。',
+        roadmap2Title: '后续演进',
+        roadmap2Desc: '接入新模型后，可扩展版本切换、指标对比和不同任务场景的可信阈值解释。',
+        compareTipTitle: '展示建议',
+        compareTipDesc: '比赛现场可先展示总体指标，再切到散点图和残差图，最后说明模型版本切换与后续优化空间。',
+        online: '在线',
+        offline: '离线',
+        refreshSuccess: '指标已刷新',
+        refreshFail: '指标加载失败',
+        credibilityHigh: '较高',
+        credibilityMedium: '中等',
+        credibilityLow: '待优化',
+        credibilityUnknown: '未判定',
+        scatterLabel: '真实值 vs 预测值',
+        residualLabel: '残差',
+        modelVersionFallback: 'Real-v1'
+      },
+      en: {
+        brandTitle: 'Mars Ozone Intelligence Platform',
+        brandSub: 'Deep-space Forecast Platform',
+        navHome: 'Home',
+        navPredict: 'Forecast',
+        navExplorer: 'Exploration',
+        navMetrics: 'Model Evaluation',
+        navAssistant: 'AI Assistant',
+        navGovernance: 'Data Governance',
+        navScience: 'Science Center',
+        navUser: 'User Center',
+        metricsBadge: 'Model Credibility',
+        metricsTitle: 'Model Evaluation / Credibility',
+        metricsDesc: 'From global metrics, fit distribution, residual stability and interpretability notes, this page explains whether the model is reliable, to what degree, and how to present that reliability in the competition demo.',
+        heroMetric1Label: 'Current Version',
+        heroMetric1Sub: 'Active model version',
+        heroMetric2Label: 'API Status',
+        heroMetric2Sub: 'Backend health check',
+        heroMetric3Label: 'Credibility Summary',
+        heroMetric3Sub: 'Auto-generated from metrics',
+        hud1: 'Evaluation Stream',
+        hud2: 'Scatter Alignment',
+        hud3: 'Residual Stability',
+        hudMetric1: 'Judge Focus',
+        hudMetric1Desc: 'Is the result credible, is the error stable, and are the model boundaries explained clearly?',
+        hudMetric2: 'Current Source',
+        hudMetric2Desc: 'Global metrics API + scatter API + residual API shown in one chain.',
+        hudMetric3: 'Narrative Goal',
+        hudMetric3Desc: 'Move from numbers to plots to interpretation, forming a complete trust loop.',
+        controlBadge: 'Evaluation Console',
+        controlTitle: 'Evaluation Panel',
+        refreshBtn: 'Refresh Metrics',
+        controlItem1Title: 'Global Metrics',
+        controlItem1Desc: 'Use R², MSE, MAE and RMSE to describe overall fit quality and error scale.',
+        controlItem2Title: 'Fit Analysis',
+        controlItem2Desc: 'Judge fitting trend and deviation pattern from the scatter distribution of real and predicted values.',
+        controlItem3Title: 'Residual Analysis',
+        controlItem3Desc: 'Use residual bars to show whether model error is stable and whether abnormal points exist.',
+        judgeTitle: 'Presentation Suggestion',
+        judgeDesc: 'Show the global metrics first, then explain scatter alignment and residual stability, and finally add model limits, version evolution and future optimization so judges feel the result is trustworthy and the team understands its boundaries.',
+        metricR2Desc: 'Goodness of fit, closer to 1 is better',
+        metricMSEDesc: 'Mean squared error, lower is better',
+        metricMAEDesc: 'Mean absolute error, lower is better',
+        metricRMSEDesc: 'Root mean squared error, lower is better',
+        scatterBadge: 'Scatter Insight',
+        scatterTitle: 'Fit Analysis / Scatter Plot',
+        scatterTag: 'Scatter Analysis',
+        scatterExplain: 'If points mainly follow the diagonal trend, consistency between predicted and real values is stronger; if high-value or low-value regions drift away, those intervals still need targeted optimization.',
+        residualBadge: 'Residual Stability',
+        residualTitle: 'Residual Analysis',
+        residualTag: 'Residual Distribution',
+        residualExplain: 'A more concentrated residual pattern with fewer extreme peaks usually means more stable error; if obvious abnormal bars appear, explain data imbalance, sparse regions or extreme scenarios during the presentation.',
+        trustBadge: 'Trust Matrix',
+        trustTitle: 'Credibility Notes',
+        trustTag: 'Interpretability Layer',
+        trust1Title: 'Why it is credible',
+        trust1Desc: 'When R² is high and MAE / RMSE are low, the model generally shows good fit and stronger reference value.',
+        trust2Title: 'How to read the scatter plot',
+        trust2Desc: 'If points mainly follow the diagonal trend, consistency between real and predicted values is stronger; larger deviations indicate weaker fit.',
+        trust3Title: 'How to read residuals',
+        trust3Desc: 'A more concentrated residual distribution with fewer abnormal peaks usually means more stable model error; obvious abnormal ranges still need explanation.',
+        trustSummaryTitle: 'One-line summary for judges',
+        trustSummaryDesc: 'This page is not only for showing metrics. It explains whether the model is good enough, whether the error is stable, and whether the output can be used as a scientific reference, so the platform demonstrates both prediction and interpretation.',
+        compareBadge: 'Version Strategy',
+        compareTitle: 'Model Comparison Reserve',
+        compareTag: 'Future-ready',
+        compare1: 'Current connected model',
+        compare2: 'New version switching',
+        compare3: 'Version comparison',
+        compare4: 'Trust threshold explanation',
+        reserved: 'Reserved',
+        roadmap1Title: 'Current Status',
+        roadmap1Desc: 'metrics/model, metrics/scatter and metrics/residual are already connected to form a complete credibility display chain.',
+        roadmap2Title: 'Future Evolution',
+        roadmap2Desc: 'After connecting the new model, this page can be extended with version switching, metric comparison and trust thresholds for different scenarios.',
+        compareTipTitle: 'Presentation Tip',
+        compareTipDesc: 'In the competition demo, show global metrics first, then scatter and residual plots, and finally future model comparison plans.',
+        online: 'Online',
+        offline: 'Offline',
+        refreshSuccess: 'Metrics refreshed',
+        refreshFail: 'Failed to load metrics',
+        credibilityHigh: 'High',
+        credibilityMedium: 'Medium',
+        credibilityLow: 'Needs work',
+        credibilityUnknown: 'Unknown',
+        scatterLabel: 'Real vs Predicted',
+        residualLabel: 'Residual',
+        modelVersionFallback: 'Real-v1'
+      }
+    };
+
+    const state = {
+      lang: localStorage.getItem('marsLang') || 'zh',
+      scatterChart: null,
+      residualChart: null
+    };
+
+    function t(key) {
+      return (messages[state.lang] && messages[state.lang][key]) || key;
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = state.lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
+      });
+
+      document.getElementById('langZh').className =
+        state.lang === 'zh'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+
+      document.getElementById('langEn').className =
+        state.lang === 'en'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+    }
+
+    function showToast(message, isError = false) {
+      const old = document.getElementById('toast');
+      if (old) old.remove();
+
+      const div = document.createElement('div');
+      div.id = 'toast';
+      div.className = 'toast';
+      div.style.borderColor = isError ? 'rgba(244,63,94,0.25)' : 'rgba(19,164,236,0.25)';
+      div.textContent = message;
+      document.body.appendChild(div);
+
+      setTimeout(() => {
+        const el = document.getElementById('toast');
+        if (el) el.remove();
+      }, 2400);
+    }
+
+    async function apiGet(path) {
+      const res = await fetch(`${API_BASE}${path}`);
+      const json = await res.json();
+      if (!res.ok || json.code !== 0) throw new Error(json.message || 'Request failed');
+      return json.data;
+    }
+
+    async function checkHealth() {
+      const candidates = [`${API_BASE}/health`, '/api/health'];
+      const apiStatus = document.getElementById('apiStatus');
+      const heroApi = document.getElementById('heroApi');
+
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (res.ok && data.code === 0) {
+            apiStatus.textContent = t('online');
+            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
+            heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
+            return;
+          }
+        } catch (e) {}
+      }
+
+      apiStatus.textContent = t('offline');
+      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
+      heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
+    }
+
+    function getCredibilityLevel(r2, rmse) {
+      if (typeof r2 !== 'number' || Number.isNaN(r2)) return t('credibilityUnknown');
+      if (r2 >= 0.85 && (typeof rmse !== 'number' || rmse <= 0.2)) return t('credibilityHigh');
+      if (r2 >= 0.65) return t('credibilityMedium');
+      return t('credibilityLow');
+    }
+
+    function getChartOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#dbe7f3' } },
+          tooltip: {
+            backgroundColor: 'rgba(7,16,21,0.92)',
+            borderColor: 'rgba(255,255,255,0.10)',
+            borderWidth: 1,
+            titleColor: '#ffffff',
+            bodyColor: '#dbe7f3'
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#94a3b8' },
+            grid: { color: 'rgba(255,255,255,0.06)' }
+          },
+          y: {
+            ticks: { color: '#94a3b8' },
+            grid: { color: 'rgba(255,255,255,0.06)' }
+          }
+        }
+      };
+    }
+
+    function renderScatter(points) {
+      const ctx = document.getElementById('scatterChart').getContext('2d');
+      if (state.scatterChart) state.scatterChart.destroy();
+
+      state.scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: t('scatterLabel'),
+            data: (points || []).map(p => ({ x: p.real, y: p.pred })),
+            backgroundColor: 'rgba(19,164,236,0.78)',
+            borderColor: 'rgba(19,164,236,1)',
+            pointRadius: 4,
+            pointHoverRadius: 5
+          }]
+        },
+        options: getChartOptions()
+      });
+    }
+
+    function renderResidual(residuals) {
+      const ctx = document.getElementById('residualChart').getContext('2d');
+      if (state.residualChart) state.residualChart.destroy();
+
+      state.residualChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: (residuals || []).map((_, i) => `R${i + 1}`),
+          datasets: [{
+            label: t('residualLabel'),
+            data: residuals || [],
+            backgroundColor: 'rgba(255,123,84,0.76)',
+            borderColor: 'rgba(255,123,84,1)',
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: getChartOptions()
+      });
+    }
+
+    async function loadMetrics() {
+      try {
+        const metricData = await apiGet('/metrics/model');
+        const scatterData = await apiGet('/metrics/scatter');
+        const residualData = await apiGet('/metrics/residual');
+
+        const r2 = typeof metricData.r2 === 'number' ? metricData.r2 : Number(metricData.r2);
+        const mse = typeof metricData.mse === 'number' ? metricData.mse : Number(metricData.mse);
+        const mae = typeof metricData.mae === 'number' ? metricData.mae : Number(metricData.mae);
+        const rmse = typeof metricData.rmse === 'number' ? metricData.rmse : Number(metricData.rmse);
+
+        document.getElementById('metricR2').textContent = Number.isFinite(r2) ? r2.toFixed(4) : '--';
+        document.getElementById('metricMSE').textContent = Number.isFinite(mse) ? mse.toFixed(4) : '--';
+        document.getElementById('metricMAE').textContent = Number.isFinite(mae) ? mae.toFixed(4) : '--';
+        document.getElementById('metricRMSE').textContent = Number.isFinite(rmse) ? rmse.toFixed(4) : '--';
+
+        document.getElementById('credibilityLevel').textContent = getCredibilityLevel(r2, rmse);
+        document.getElementById('modelVersionText').textContent = metricData.modelVersion || t('modelVersionFallback');
+
+        renderScatter(scatterData.points || []);
+        renderResidual(residualData.residuals || []);
+        showToast(t('refreshSuccess'));
+      } catch (e) {
+        showToast(`${t('refreshFail')}：${e.message}`, true);
+      }
+    }
+
+    document.getElementById('refreshMetricsBtn').addEventListener('click', loadMetrics);
+
+    document.getElementById('langZh').addEventListener('click', () => {
+      state.lang = 'zh';
+      localStorage.setItem('marsLang', 'zh');
+      applyI18n();
+      checkHealth();
+      loadMetrics();
+    });
+
+    document.getElementById('langEn').addEventListener('click', () => {
+      state.lang = 'en';
+      localStorage.setItem('marsLang', 'en');
+      applyI18n();
+      checkHealth();
+      loadMetrics();
+    });
+
+    applyI18n();
+    checkHealth();
+    loadMetrics();
+  </script>
+</body>
+</html>

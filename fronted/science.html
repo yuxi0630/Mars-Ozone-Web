@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mars Ozone Platform - Science Hub</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700"
+    rel="stylesheet"
+  />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#13a4ec',
+            accent: '#ff7b54',
+            'bg-dark': '#081117',
+            'panel-dark': '#0f1b22',
+            'line-dark': '#1f2d35'
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 0 60px rgba(19,164,236,0.16)',
+            card: '0 20px 60px rgba(0,0,0,0.32)'
+          },
+          backgroundImage: {
+            'hero-deep':
+              'radial-gradient(circle at 18% 18%, rgba(255,123,84,0.20), transparent 18%), radial-gradient(circle at 72% 24%, rgba(19,164,236,0.22), transparent 22%), radial-gradient(circle at 48% 80%, rgba(19,164,236,0.08), transparent 32%), linear-gradient(135deg, #081117 0%, #0b1419 48%, #121c22 100%)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(19,164,236,0.08), transparent 30%),
+        radial-gradient(circle at 16% 10%, rgba(255,123,84,0.10), transparent 18%),
+        radial-gradient(circle at 78% 18%, rgba(19,164,236,0.06), transparent 22%),
+        #081117;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 38px 38px;
+    }
+    .panel-card {
+      background: rgba(15, 27, 34, 0.78);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.30);
+    }
+    .soft-panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+    }
+    .metric-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .mini-grid {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9999;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: white;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body class="bg-bg-dark text-slate-100 antialiased">
+  <div class="relative min-h-screen overflow-x-hidden">
+    <div class="pointer-events-none absolute inset-0 grid-bg opacity-20"></div>
+
+    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#081117]/80 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
+        <div class="flex items-center gap-4">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
+            <span class="material-symbols-outlined text-[26px]">deployed_code</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
+            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
+          </div>
+        </div>
+
+        <div class="hidden items-center gap-8 md:flex">
+          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
+          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navPredict">臭氧预测</a>
+          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navExplorer">时空可视化</a>
+          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
+          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navAssistant">智能助手</a>
+          <a href="governance.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navGovernance">数据治理</a>
+          <a href="science.html" class="text-sm font-medium text-primary" data-i18n="navScience">科普中心</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
+            <span class="material-symbols-outlined text-[16px] text-primary">auto_stories</span>
+            <span data-i18n="displayBadge">展示层</span>
+            <span id="apiStatus" class="rounded-full bg-primary/10 px-2 py-0.5 text-primary" data-i18n="displayStatus">科普叙事</span>
+          </div>
+
+          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
+            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
+            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
+      <section class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-hero-deep p-6 shadow-glow lg:p-8">
+        <div class="pointer-events-none absolute inset-y-0 right-0 w-[42%] bg-gradient-to-l from-primary/8 via-transparent to-transparent"></div>
+        <div class="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+          <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+              <span class="material-symbols-outlined text-[16px]">science</span>
+              <span data-i18n="scienceBadge">Science Hub</span>
+            </div>
+
+            <h2 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-white lg:text-5xl" data-i18n="scienceTitle">
+              火星科研科普中心
+            </h2>
+            <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="scienceDesc">
+              将火星臭氧研究、火星大气知识、深空任务背景与专题故事转化为评委更容易理解、公众更愿意接受的表达，让平台不仅会预测，也能解释科研意义、传播科学价值。
+            </p>
+
+            <div class="mt-7 flex flex-wrap gap-3">
+              <button id="scrollKnowledgeBtn" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary/90" data-i18n="ctaKnowledge">
+                查看知识主线
+              </button>
+              <button id="scrollPitchBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10" data-i18n="ctaPitch">
+                查看答辩讲法
+              </button>
+            </div>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="heroMetric1Label">内容定位</div>
+                <div class="mt-2 text-3xl font-bold text-white">Science</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric1Sub">科研传播与评委友好表达</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="heroMetric2Label">主题核心</div>
+                <div class="mt-2 text-3xl font-bold text-white">Mars</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric2Sub">火星大气、臭氧与探测任务</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="heroMetric3Label">专题延展</div>
+                <div class="mt-2 text-3xl font-bold text-white">MY34</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric3Sub">沙尘暴专题的科普入口</div>
+              </div>
+            </div>
+
+            <div class="mt-8 grid gap-3 md:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div class="mb-1 text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hud1Label">页面角色</div>
+                <div class="text-sm text-white" data-i18n="hud1Value">解释项目意义</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div class="mb-1 text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hud2Label">比赛价值</div>
+                <div class="text-sm text-white" data-i18n="hud2Value">强化平台的科研传播感</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div class="mb-1 text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hud3Label">讲述方式</div>
+                <div class="text-sm text-white" data-i18n="hud3Value">先意义，再能力，后传播</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative z-10 panel-card rounded-[2rem] p-5 lg:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-white" data-i18n="guideTitle">页面定位 / Judge Notes</h3>
+                <p class="mt-1 text-sm text-slate-400" data-i18n="guideSub">帮助评委快速理解为什么作品里需要“科普中心”。</p>
+              </div>
+              <button
+                id="showTipBtn"
+                class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10"
+                data-i18n="showTipBtn"
+              >
+                展示建议
+              </button>
+            </div>
+
+            <div class="grid gap-3">
+              <div class="soft-panel rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                  <span class="material-symbols-outlined text-primary text-[18px]">menu_book</span>
+                  <span data-i18n="guideItem1Title">科普表达</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="guideItem1Desc">
+                  不是简单堆知识，而是把科研结论翻译成评委听得懂、公众愿意看的表达。
+                </p>
+              </div>
+
+              <div class="soft-panel rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                  <span class="material-symbols-outlined text-primary text-[18px]">public</span>
+                  <span data-i18n="guideItem2Title">平台价值</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="guideItem2Desc">
+                  这一页能强化“科研 + 平台 + 科普传播”的完整作品气质，而不是只有模型、图表和接口。
+                </p>
+              </div>
+
+              <div class="soft-panel rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                  <span class="material-symbols-outlined text-primary text-[18px]">campaign</span>
+                  <span data-i18n="guideItem3Title">答辩作用</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="guideItem3Desc">
+                  适合在答辩后半段作为“项目意义”“科研深度”和“传播价值”的增强页。
+                </p>
+              </div>
+
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="mb-3 flex items-center justify-between">
+                  <span class="text-sm font-semibold text-white" data-i18n="statusLaneTitle">页面状态总览</span>
+                  <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="statusLaneTag">Narrative Layer</span>
+                </div>
+                <div class="space-y-3 text-sm">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400" data-i18n="snap1Label">当前定位</span>
+                    <span class="text-emerald-300" data-i18n="snap1Value">展示型页面</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400" data-i18n="snap2Label">后端依赖</span>
+                    <span class="text-primary" data-i18n="snap2Value">弱依赖</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400" data-i18n="snap3Label">比赛作用</span>
+                    <span class="text-amber-300" data-i18n="snap3Value">强化叙事</span>
+                  </div>
+                  <div class="h-2 overflow-hidden rounded-full bg-white/5">
+                    <div class="h-full w-[72%] rounded-full bg-gradient-to-r from-primary to-accent"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="knowledgeSection" class="mt-8 grid gap-6 lg:grid-cols-2 2xl:grid-cols-4">
+        <article class="panel-card rounded-[2rem] p-6">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">travel_explore</span>
+          </div>
+          <h3 class="text-xl font-bold text-white" data-i18n="card1Title">火星百科</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400" data-i18n="card1Desc">
+            火星拥有稀薄大气、显著季节变化和极区过程，其大气化学与地球显著不同，是研究行星环境的重要对象。
+          </p>
+        </article>
+
+        <article class="panel-card rounded-[2rem] p-6">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">air</span>
+          </div>
+          <h3 class="text-xl font-bold text-white" data-i18n="card2Title">臭氧知识</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400" data-i18n="card2Desc">
+            火星臭氧不仅是大气化学的重要组成部分，也能反映季节变化、辐射条件以及与其他因子的耦合关系。
+          </p>
+        </article>
+
+        <article class="panel-card rounded-[2rem] p-6">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">rocket_launch</span>
+          </div>
+          <h3 class="text-xl font-bold text-white" data-i18n="card3Title">深空任务</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400" data-i18n="card3Desc">
+            火星探测任务不断积累遥感与环境数据，为理解火星气候系统、臭氧变化和长期演化提供支撑。
+          </p>
+        </article>
+
+        <article class="panel-card rounded-[2rem] p-6">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">cyclone</span>
+          </div>
+          <h3 class="text-xl font-bold text-white" data-i18n="card4Title">专题故事</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400" data-i18n="card4Desc">
+            MY34 全球沙尘暴等特殊事件可以帮助观众理解“为什么火星臭氧值得研究”以及“为什么平台要做专题表达”。
+          </p>
+        </article>
+      </section>
+
+      <section class="mt-8 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <div class="space-y-6">
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white" data-i18n="section1Title">为什么要研究火星臭氧？</h3>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="section1Tag">Why Ozone Matters</span>
+            </div>
+
+            <div class="space-y-4 text-sm leading-8 text-slate-300">
+              <p data-i18n="section1P1">
+                火星臭氧不仅是一个“气体成分”问题，更是理解火星大气化学、辐射环境和季节过程的重要窗口。
+              </p>
+              <p data-i18n="section1P2">
+                臭氧的时空分布可以帮助研究者观察不同区域、不同季节和不同环境事件下的大气响应规律。
+              </p>
+              <p data-i18n="section1P3">
+                对评委来说，这意味着我们的平台不仅是在“算一个数”，而是在用数据和模型帮助理解火星环境变化。
+              </p>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white" data-i18n="section2Title">MY34 沙尘暴为什么值得做专题？</h3>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="section2Tag">Dust Storm Topic</span>
+            </div>
+
+            <div class="space-y-4 text-sm leading-8 text-slate-300">
+              <p data-i18n="section2P1">
+                MY34 全球沙尘暴是火星环境研究中的一个重要事件，因为它显著改变了大气条件，也可能影响臭氧分布和观测特征。
+              </p>
+              <p data-i18n="section2P2">
+                通过专题展示，平台可以把“模型预测”与“科研故事”连接起来，让评委更直观看到项目的研究深度。
+              </p>
+              <p data-i18n="section2P3">
+                这也是你们作品从普通数据页面上升为“科研平台”的关键包装点之一。
+              </p>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white" data-i18n="section5Title">当前页面边界怎么讲？</h3>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="section5Tag">Boundary</span>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="metric-card rounded-2xl p-4">
+                <div class="mb-2 font-semibold text-white" data-i18n="bound1Title">当前已完成</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="bound1Desc">
+                  已构建完整科普结构，可作为答辩中的项目意义页、科研解释页和公众传播页。
+                </p>
+              </div>
+              <div class="metric-card rounded-2xl p-4">
+                <div class="mb-2 font-semibold text-white" data-i18n="bound2Title">后续可扩展</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="bound2Desc">
+                  可继续加入专题时间线、任务资料链接、知识图谱和互动问答，增强可玩性与教育传播力。
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="pitchSection" class="space-y-6">
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white" data-i18n="section3Title">答辩中怎么讲这页？</h3>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="section3Tag">Presentation Guide</span>
+            </div>
+
+            <div class="space-y-4">
+              <div class="metric-card rounded-2xl p-4">
+                <div class="mb-2 font-semibold text-white" data-i18n="talk1Title">先讲项目意义</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="talk1Desc">
+                  说明火星臭氧研究不仅有科研价值，也有助于理解行星环境变化与深空探测背景。
+                </p>
+              </div>
+
+              <div class="metric-card rounded-2xl p-4">
+                <div class="mb-2 font-semibold text-white" data-i18n="talk2Title">再讲平台能力</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="talk2Desc">
+                  平台不仅可以预测和展示，还能通过科普中心把研究内容翻译给更广泛的受众。
+                </p>
+              </div>
+
+              <div class="metric-card rounded-2xl p-4">
+                <div class="mb-2 font-semibold text-white" data-i18n="talk3Title">最后讲传播价值</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="talk3Desc">
+                  这体现了作品不仅面向技术验证，也面向科研传播、教育和公众理解。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white" data-i18n="section4Title">后续可扩展方向</h3>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="section4Tag">Future Extensions</span>
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="future1">火星知识图谱</span>
+                <span class="text-primary">Idea</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="future2">专题故事时间线</span>
+                <span class="text-primary">Idea</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="future3">互动问答 / 小测试</span>
+                <span class="text-primary">Idea</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="future4">外部任务资料链接</span>
+                <span class="text-primary">Idea</span>
+              </div>
+            </div>
+
+            <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-2 text-sm font-semibold text-white" data-i18n="statusExplainTitle">当前页面状态</div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="statusExplainDesc">
+                当前这页主要承担展示型叙事作用，不强依赖后端接口；重点是让项目更完整、更具科研与科普传播气质。
+              </p>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-bold text-white" data-i18n="proofTitle">页面状态标注</h3>
+                <p class="mt-1 text-sm text-slate-400" data-i18n="proofSub">这一块用来向评委说明：哪些是真实联调，哪些是展示型内容。</p>
+              </div>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="proofTag">State Map</span>
+            </div>
+
+            <div class="mini-grid rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
+              <div class="space-y-4">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-emerald-300 text-[18px]">check_circle</span>
+                    <span class="font-semibold" data-i18n="proof1Title">当前定位</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="proof1Desc">
+                    展示型页面，用于强化项目意义、科研背景和科普传播能力。
+                  </p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-primary text-[18px]">deployed_code</span>
+                    <span class="font-semibold" data-i18n="proof2Title">后端依赖</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="proof2Desc">
+                    当前不强依赖真实接口，适合优先做叙事包装和视觉统一。
+                  </p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-accent text-[18px]">construction</span>
+                    <span class="font-semibold" data-i18n="proof3Title">后续可补</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="proof3Desc">
+                    专题资料库、任务链接、互动问答、小测试、知识图谱等均可作为后续增强模块。
+                  </p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-accent text-[18px]">view_in_ar</span>
+                    <span class="font-semibold" data-i18n="proof4Title">比赛价值</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="proof4Desc">
+                    这是把项目从“技术作品”拉成“完整科研平台”的最后一层传播表达。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 lg:grid-cols-3">
+        <div class="panel-card rounded-[2rem] p-6">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">quiz</span>
+          </div>
+          <h3 class="text-lg font-bold text-white" data-i18n="foot1Title">趣味问答</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400" data-i18n="foot1Desc">
+            可扩展火星知识问答、臭氧小测试等互动内容，增强页面参与感和答辩展示效果。
+          </p>
+        </div>
+
+        <div class="panel-card rounded-[2rem] p-6">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">link</span>
+          </div>
+          <h3 class="text-lg font-bold text-white" data-i18n="foot2Title">资料拓展</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400" data-i18n="foot2Desc">
+            可加入数据源说明、任务背景、论文与公开资源，强化平台的学术支撑感。
+          </p>
+        </div>
+
+        <div class="panel-card rounded-[2rem] p-6">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">school</span>
+          </div>
+          <h3 class="text-lg font-bold text-white" data-i18n="foot3Title">教育传播</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400" data-i18n="foot3Desc">
+            这页也适合作为未来面向学生、公众和跨学科观众的知识入口。
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const messages = {
+      zh: {
+        brandTitle: '火星臭氧智能预报平台',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: '首页 / 总览',
+        navPredict: '臭氧预测',
+        navExplorer: '时空可视化',
+        navMetrics: '模型评估',
+        navAssistant: '智能助手',
+        navGovernance: '数据治理',
+        navScience: '科普中心',
+        displayBadge: '展示层',
+        displayStatus: '科普叙事',
+
+        scienceBadge: 'Science Hub',
+        scienceTitle: '火星科研科普中心',
+        scienceDesc: '将火星臭氧研究、火星大气知识、深空任务背景与专题故事转化为评委更容易理解、公众更愿意接受的表达，让平台不仅会预测，也能解释科研意义、传播科学价值。',
+        ctaKnowledge: '查看知识主线',
+        ctaPitch: '查看答辩讲法',
+
+        heroMetric1Label: '内容定位',
+        heroMetric1Sub: '科研传播与评委友好表达',
+        heroMetric2Label: '主题核心',
+        heroMetric2Sub: '火星大气、臭氧与探测任务',
+        heroMetric3Label: '专题延展',
+        heroMetric3Sub: '沙尘暴专题的科普入口',
+
+        hud1Label: '页面角色',
+        hud1Value: '解释项目意义',
+        hud2Label: '比赛价值',
+        hud2Value: '强化平台的科研传播感',
+        hud3Label: '讲述方式',
+        hud3Value: '先意义，再能力，后传播',
+
+        guideTitle: '页面定位 / Judge Notes',
+        guideSub: '帮助评委快速理解为什么作品里需要“科普中心”。',
+        showTipBtn: '展示建议',
+        guideItem1Title: '科普表达',
+        guideItem1Desc: '不是简单堆知识，而是把科研结论翻译成评委听得懂、公众愿意看的表达。',
+        guideItem2Title: '平台价值',
+        guideItem2Desc: '这一页能强化“科研 + 平台 + 科普传播”的完整作品气质，而不是只有模型、图表和接口。',
+        guideItem3Title: '答辩作用',
+        guideItem3Desc: '适合在答辩后半段作为“项目意义”“科研深度”和“传播价值”的增强页。',
+        statusLaneTitle: '页面状态总览',
+        statusLaneTag: '叙事层',
+        snap1Label: '当前定位',
+        snap1Value: '展示型页面',
+        snap2Label: '后端依赖',
+        snap2Value: '弱依赖',
+        snap3Label: '比赛作用',
+        snap3Value: '强化叙事',
+
+        card1Title: '火星百科',
+        card1Desc: '火星拥有稀薄大气、显著季节变化和极区过程，其大气化学与地球显著不同，是研究行星环境的重要对象。',
+        card2Title: '臭氧知识',
+        card2Desc: '火星臭氧不仅是大气化学的重要组成部分，也能反映季节变化、辐射条件以及与其他因子的耦合关系。',
+        card3Title: '深空任务',
+        card3Desc: '火星探测任务不断积累遥感与环境数据，为理解火星气候系统、臭氧变化和长期演化提供支撑。',
+        card4Title: '专题故事',
+        card4Desc: 'MY34 全球沙尘暴等特殊事件可以帮助观众理解“为什么火星臭氧值得研究”以及“为什么平台要做专题表达”。',
+
+        section1Title: '为什么要研究火星臭氧？',
+        section1Tag: 'Why Ozone Matters',
+        section1P1: '火星臭氧不仅是一个“气体成分”问题，更是理解火星大气化学、辐射环境和季节过程的重要窗口。',
+        section1P2: '臭氧的时空分布可以帮助研究者观察不同区域、不同季节和不同环境事件下的大气响应规律。',
+        section1P3: '对评委来说，这意味着我们的平台不仅是在“算一个数”，而是在用数据和模型帮助理解火星环境变化。',
+
+        section2Title: 'MY34 沙尘暴为什么值得做专题？',
+        section2Tag: 'Dust Storm Topic',
+        section2P1: 'MY34 全球沙尘暴是火星环境研究中的一个重要事件，因为它显著改变了大气条件，也可能影响臭氧分布和观测特征。',
+        section2P2: '通过专题展示，平台可以把“模型预测”与“科研故事”连接起来，让评委更直观看到项目的研究深度。',
+        section2P3: '这也是你们作品从普通数据页面上升为“科研平台”的关键包装点之一。',
+
+        section5Title: '当前页面边界怎么讲？',
+        section5Tag: 'Boundary',
+        bound1Title: '当前已完成',
+        bound1Desc: '已构建完整科普结构，可作为答辩中的项目意义页、科研解释页和公众传播页。',
+        bound2Title: '后续可扩展',
+        bound2Desc: '可继续加入专题时间线、任务资料链接、知识图谱和互动问答，增强可玩性与教育传播力。',
+
+        section3Title: '答辩中怎么讲这页？',
+        section3Tag: 'Presentation Guide',
+        talk1Title: '先讲项目意义',
+        talk1Desc: '说明火星臭氧研究不仅有科研价值，也有助于理解行星环境变化与深空探测背景。',
+        talk2Title: '再讲平台能力',
+        talk2Desc: '平台不仅可以预测和展示，还能通过科普中心把研究内容翻译给更广泛的受众。',
+        talk3Title: '最后讲传播价值',
+        talk3Desc: '这体现了作品不仅面向技术验证，也面向科研传播、教育和公众理解。',
+
+        section4Title: '后续可扩展方向',
+        section4Tag: 'Future Extensions',
+        future1: '火星知识图谱',
+        future2: '专题故事时间线',
+        future3: '互动问答 / 小测试',
+        future4: '外部任务资料链接',
+        statusExplainTitle: '当前页面状态',
+        statusExplainDesc: '当前这页主要承担展示型叙事作用，不强依赖后端接口；重点是让项目更完整、更具科研与科普传播气质。',
+
+        proofTitle: '页面状态标注',
+        proofSub: '这一块用来向评委说明：哪些是真实联调，哪些是展示型内容。',
+        proofTag: '状态图',
+        proof1Title: '当前定位',
+        proof1Desc: '展示型页面，用于强化项目意义、科研背景和科普传播能力。',
+        proof2Title: '后端依赖',
+        proof2Desc: '当前不强依赖真实接口，适合优先做叙事包装和视觉统一。',
+        proof3Title: '后续可补',
+        proof3Desc: '专题资料库、任务链接、互动问答、小测试、知识图谱等均可作为后续增强模块。',
+        proof4Title: '比赛价值',
+        proof4Desc: '这是把项目从“技术作品”拉成“完整科研平台”的最后一层传播表达。',
+
+        foot1Title: '趣味问答',
+        foot1Desc: '可扩展火星知识问答、臭氧小测试等互动内容，增强页面参与感和答辩展示效果。',
+        foot2Title: '资料拓展',
+        foot2Desc: '可加入数据源说明、任务背景、论文与公开资源，强化平台的学术支撑感。',
+        foot3Title: '教育传播',
+        foot3Desc: '这页也适合作为未来面向学生、公众和跨学科观众的知识入口。',
+
+        showTipToast: '这页适合放在答辩后半段，用来强化项目意义、科研深度和传播价值。'
+      },
+      en: {
+        brandTitle: 'Mars Ozone Intelligence Platform',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: 'Home / Overview',
+        navPredict: 'Ozone Forecast',
+        navExplorer: 'Exploration',
+        navMetrics: 'Model Evaluation',
+        navAssistant: 'AI Assistant',
+        navGovernance: 'Data Governance',
+        navScience: 'Science Hub',
+        displayBadge: 'Narrative Layer',
+        displayStatus: 'Science Story',
+
+        scienceBadge: 'Science Hub',
+        scienceTitle: 'Mars Science Communication Hub',
+        scienceDesc: 'Translate Mars ozone research, Martian atmosphere knowledge, deep-space mission background and topic narratives into language that judges can quickly understand and the public can readily accept, so the platform not only predicts but also explains scientific meaning and communicates scientific value.',
+        ctaKnowledge: 'View Knowledge Flow',
+        ctaPitch: 'View Pitch Guide',
+
+        heroMetric1Label: 'Content Role',
+        heroMetric1Sub: 'Science communication and judge-friendly narrative',
+        heroMetric2Label: 'Core Topic',
+        heroMetric2Sub: 'Martian atmosphere, ozone, and exploration missions',
+        heroMetric3Label: 'Topic Extension',
+        heroMetric3Sub: 'A science entry point for the dust storm topic',
+
+        hud1Label: 'Page Role',
+        hud1Value: 'Explain project significance',
+        hud2Label: 'Competition Value',
+        hud2Value: 'Strengthen research communication feel',
+        hud3Label: 'Story Order',
+        hud3Value: 'Meaning, capability, then outreach',
+
+        guideTitle: 'Page Positioning / Judge Notes',
+        guideSub: 'Help judges quickly understand why a Science Hub is needed in the project.',
+        showTipBtn: 'Presentation Tip',
+        guideItem1Title: 'Science Communication',
+        guideItem1Desc: 'This page is not about stacking facts, but translating research conclusions into language that judges understand and the public wants to read.',
+        guideItem2Title: 'Platform Value',
+        guideItem2Desc: 'This page reinforces the project as a complete research platform with science communication value, not only a collection of models, charts and APIs.',
+        guideItem3Title: 'Defense Role',
+        guideItem3Desc: 'It fits best in the later part of the defense as an enhancement page for project significance, research depth and outreach value.',
+        statusLaneTitle: 'Page Snapshot',
+        statusLaneTag: 'Narrative Layer',
+        snap1Label: 'Current Role',
+        snap1Value: 'Display page',
+        snap2Label: 'Backend Dependency',
+        snap2Value: 'Light',
+        snap3Label: 'Competition Role',
+        snap3Value: 'Strengthen narrative',
+
+        card1Title: 'Mars Basics',
+        card1Desc: 'Mars has a thin atmosphere, strong seasonal variation and polar processes. Its atmospheric chemistry differs greatly from Earth and is an important object of planetary study.',
+        card2Title: 'Ozone Knowledge',
+        card2Desc: 'Martian ozone is not only an atmospheric component, but also an indicator of seasonal variation, radiation conditions and coupling with other factors.',
+        card3Title: 'Deep-space Missions',
+        card3Desc: 'Mars missions continuously accumulate remote sensing and environmental data, supporting the understanding of Martian climate systems, ozone variation and long-term evolution.',
+        card4Title: 'Topic Narrative',
+        card4Desc: 'Special events such as the MY34 global dust storm help audiences understand why Martian ozone matters and why the platform needs dedicated topic storytelling.',
+
+        section1Title: 'Why study Martian ozone?',
+        section1Tag: 'Why Ozone Matters',
+        section1P1: 'Martian ozone is not only a gas-composition issue, but also a key window into atmospheric chemistry, radiation environment and seasonal processes on Mars.',
+        section1P2: 'Its spatiotemporal distribution helps researchers observe atmospheric response patterns across regions, seasons and special environmental events.',
+        section1P3: 'For judges, this means the platform is not merely calculating a number, but using data and models to help understand environmental change on Mars.',
+
+        section2Title: 'Why is the MY34 dust storm worth a dedicated topic page?',
+        section2Tag: 'Dust Storm Topic',
+        section2P1: 'The MY34 global dust storm is an important event in Martian environmental research because it significantly changed atmospheric conditions and may have affected ozone distribution and observation characteristics.',
+        section2P2: 'Through topic storytelling, the platform can connect model prediction with research narrative, allowing judges to more directly perceive the scientific depth of the project.',
+        section2P3: 'This is also one of the key packaging points that elevates the work from a normal data page into a true research platform.',
+
+        section5Title: 'How should this page boundary be explained?',
+        section5Tag: 'Boundary',
+        bound1Title: 'Already Completed',
+        bound1Desc: 'A full science-communication structure is already built, and it can serve as a project significance page, research explanation page and outreach page during the defense.',
+        bound2Title: 'Future Expansion',
+        bound2Desc: 'You can continue adding topic timelines, mission links, knowledge graphs and interactive Q&A to improve engagement and educational outreach.',
+
+        section3Title: 'How should this page be presented during the defense?',
+        section3Tag: 'Presentation Guide',
+        talk1Title: 'Start with project significance',
+        talk1Desc: 'Explain that Martian ozone research has scientific value and helps us understand planetary environmental change and deep-space exploration background.',
+        talk2Title: 'Then explain platform capability',
+        talk2Desc: 'The platform not only predicts and visualizes, but also translates research content for a broader audience through the Science Hub.',
+        talk3Title: 'End with outreach value',
+        talk3Desc: 'This shows the project is not only for technical verification, but also for science communication, education and public understanding.',
+
+        section4Title: 'Future extensions',
+        section4Tag: 'Future Extensions',
+        future1: 'Mars knowledge graph',
+        future2: 'Topic story timeline',
+        future3: 'Interactive Q&A / quiz',
+        future4: 'External mission resource links',
+        statusExplainTitle: 'Current Page Status',
+        statusExplainDesc: 'This page mainly serves a narrative display role and does not strongly depend on backend APIs; the priority is to make the project more complete and stronger in research communication.',
+
+        proofTitle: 'Page State Marking',
+        proofSub: 'This block explains to judges which parts are real integrations and which parts are display-oriented content.',
+        proofTag: 'State Map',
+        proof1Title: 'Current Role',
+        proof1Desc: 'A display-oriented page used to strengthen project significance, research background and science outreach capability.',
+        proof2Title: 'Backend Dependency',
+        proof2Desc: 'It does not strongly rely on real APIs at present, so it is suitable for narrative packaging and visual unification first.',
+        proof3Title: 'Can Be Added Later',
+        proof3Desc: 'Topic resource libraries, mission links, interactive Q&A, mini quizzes and knowledge graphs can all be future enhancement modules.',
+        proof4Title: 'Competition Value',
+        proof4Desc: 'This is the final communication layer that elevates the project from a technical work into a complete research platform.',
+
+        foot1Title: 'Interactive Quiz',
+        foot1Desc: 'Mars knowledge Q&A and ozone mini-tests can be added later to enhance engagement and defense effect.',
+        foot2Title: 'Resource Expansion',
+        foot2Desc: 'Data source notes, mission background, papers and public resources can be added to strengthen the academic feel of the platform.',
+        foot3Title: 'Educational Outreach',
+        foot3Desc: 'This page can also serve as a future knowledge entry point for students, the public and interdisciplinary audiences.',
+
+        showTipToast: 'This page is best shown in the later part of the defense to strengthen project significance, research depth and outreach value.'
+      }
+    };
+
+    const state = {
+      lang: localStorage.getItem('marsLang') || 'zh'
+    };
+
+    function t(key) {
+      return (messages[state.lang] && messages[state.lang][key]) || key;
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = state.lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
+      });
+
+      document.getElementById('langZh').className =
+        state.lang === 'zh'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+
+      document.getElementById('langEn').className =
+        state.lang === 'en'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+    }
+
+    function showToast(message) {
+      const old = document.getElementById('toast');
+      if (old) old.remove();
+
+      const div = document.createElement('div');
+      div.id = 'toast';
+      div.className = 'toast';
+      div.style.borderColor = 'rgba(19,164,236,0.25)';
+      div.textContent = message;
+      document.body.appendChild(div);
+
+      setTimeout(() => {
+        const el = document.getElementById('toast');
+        if (el) el.remove();
+      }, 2600);
+    }
+
+    document.getElementById('showTipBtn').addEventListener('click', () => {
+      showToast(t('showTipToast'));
+    });
+
+    document.getElementById('langZh').addEventListener('click', () => {
+      state.lang = 'zh';
+      localStorage.setItem('marsLang', 'zh');
+      applyI18n();
+    });
+
+    document.getElementById('langEn').addEventListener('click', () => {
+      state.lang = 'en';
+      localStorage.setItem('marsLang', 'en');
+      applyI18n();
+    });
+
+    document.getElementById('scrollKnowledgeBtn').addEventListener('click', () => {
+      document.getElementById('knowledgeSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('scrollPitchBtn').addEventListener('click', () => {
+      document.getElementById('pitchSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    applyI18n();
+  </script>
+</body>
+</html>

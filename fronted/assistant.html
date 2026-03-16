@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mars Ozone Platform - Assistant</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#13a4ec',
+            accent: '#ff7b54',
+            'bg-dark': '#071018',
+            'panel-dark': '#0d1820',
+            'line-dark': '#1a2a33'
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 0 60px rgba(19,164,236,0.16)',
+            card: '0 24px 80px rgba(0,0,0,0.32)',
+            panel: '0 18px 50px rgba(0,0,0,0.28)'
+          },
+          backgroundImage: {
+            'space-shell': 'radial-gradient(circle at 18% 18%, rgba(19,164,236,0.16), transparent 22%), radial-gradient(circle at 84% 22%, rgba(255,123,84,0.14), transparent 18%), radial-gradient(circle at 50% 78%, rgba(19,164,236,0.08), transparent 30%), linear-gradient(145deg, #071018 0%, #09131a 42%, #101820 100%)',
+            'hero-shell': 'radial-gradient(circle at 16% 18%, rgba(19,164,236,0.22), transparent 22%), radial-gradient(circle at 74% 26%, rgba(255,123,84,0.18), transparent 18%), linear-gradient(135deg, rgba(10,18,25,0.95), rgba(8,14,20,0.92))'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(19,164,236,0.10), transparent 28%),
+        radial-gradient(circle at 15% 10%, rgba(255,123,84,0.08), transparent 18%),
+        #071018;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,0.95), transparent 92%);
+    }
+    .panel-card {
+      background: linear-gradient(180deg, rgba(14, 24, 32, 0.90), rgba(10, 18, 26, 0.84));
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+    }
+    .glass-strip {
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(16px);
+    }
+    .hero-panel {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-panel::before {
+      content: '';
+      position: absolute;
+      inset: -15% auto auto -8%;
+      width: 260px;
+      height: 260px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(19,164,236,0.20), transparent 62%);
+      pointer-events: none;
+    }
+    .hero-panel::after {
+      content: '';
+      position: absolute;
+      right: -40px;
+      top: 26px;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255,123,84,0.14), transparent 60%);
+      pointer-events: none;
+    }
+    .chat-wrap {
+      min-height: 560px;
+      max-height: 560px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      background: linear-gradient(180deg, rgba(0,0,0,0.16), rgba(255,255,255,0.02));
+    }
+    .chat-wrap::-webkit-scrollbar {
+      width: 8px;
+    }
+    .chat-wrap::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+    }
+    .msg-user {
+      background: linear-gradient(135deg, rgba(19,164,236,0.24), rgba(19,164,236,0.10));
+      border: 1px solid rgba(19,164,236,0.24);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .msg-bot {
+      background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9999;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: white;
+      background: rgba(0,0,0,0.78);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+      font-size: 14px;
+    }
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.6);
+      animation: blink 1.2s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    .preset-btn,
+    .insight-card,
+    .cap-card,
+    .narrative-card {
+      transition: transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease;
+    }
+    .preset-btn:hover,
+    .insight-card:hover,
+    .cap-card:hover,
+    .narrative-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(19,164,236,0.20);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.22);
+    }
+    .orbit-core {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 38% 32%, rgba(255,255,255,0.22), transparent 18%),
+        radial-gradient(circle at 34% 36%, rgba(255,123,84,0.90), rgba(132,59,36,0.78) 46%, rgba(48,27,22,0.18) 74%, transparent 76%),
+        radial-gradient(circle at center, rgba(13,22,30,0.7), transparent 74%);
+      box-shadow:
+        0 0 50px rgba(255,123,84,0.14),
+        0 0 100px rgba(19,164,236,0.10),
+        inset -26px -30px 40px rgba(0,0,0,0.26),
+        inset 12px 12px 22px rgba(255,255,255,0.07);
+      overflow: hidden;
+    }
+    .orbit-core::before,
+    .orbit-core::after {
+      content: '';
+      position: absolute;
+      inset: 8%;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .orbit-core::after {
+      inset: -12%;
+      border-color: rgba(19,164,236,0.12);
+    }
+    .orbit-ring {
+      position: absolute;
+      inset: 10%;
+      border-radius: 999px;
+      border: 1px dashed rgba(255,255,255,0.10);
+      animation: spin 28s linear infinite;
+    }
+    .orbit-node {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(19,164,236,0.92);
+      box-shadow: 0 0 18px rgba(19,164,236,0.75);
+      top: 8%;
+      left: 48%;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-3px); }
+    }
+  </style>
+</head>
+
+<body class="bg-bg-dark text-slate-100 antialiased">
+  <div class="relative min-h-screen overflow-x-hidden bg-space-shell">
+    <div class="pointer-events-none absolute inset-0 grid-bg opacity-25"></div>
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 to-transparent"></div>
+
+    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071018]/80 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
+        <div class="flex items-center gap-4">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
+            <span class="material-symbols-outlined text-[26px]">deployed_code</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
+            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
+          </div>
+        </div>
+
+        <div class="hidden items-center gap-8 md:flex">
+          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
+          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navPredict">臭氧预测</a>
+          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navExplorer">时空可视化</a>
+          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
+          <a href="assistant.html" class="text-sm font-medium text-primary" data-i18n="navAssistant">智能助手</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
+            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
+            <span>API</span>
+            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
+          </div>
+
+          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
+            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
+            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
+      <section class="hero-panel rounded-[30px] border border-white/10 bg-hero-shell p-6 shadow-glow lg:p-8">
+        <div class="grid gap-6 xl:grid-cols-[1.12fr_0.88fr] xl:items-center">
+          <div class="relative z-10">
+            <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+              <span class="material-symbols-outlined text-[16px]">smart_toy</span>
+              <span data-i18n="assistantBadge">Mars AI Assistant</span>
+            </div>
+
+            <h2 class="max-w-4xl text-3xl font-bold leading-tight tracking-tight text-white lg:text-5xl" data-i18n="assistantTitle">
+              智能助手
+            </h2>
+            <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="assistantDesc">
+              提供面向评委和用户的火星臭氧智能问答能力，可用于解释预测值、图表结果、风险等级以及 MY34 沙尘暴等专题内容。
+            </p>
+
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a href="#assistantConsole" class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(19,164,236,0.24)] transition hover:bg-primary/90">
+                <span class="material-symbols-outlined text-[18px]">chat</span>
+                <span data-i18n="heroCta1">开始问答</span>
+              </a>
+              <a href="metrics.html" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                <span class="material-symbols-outlined text-[18px]">analytics</span>
+                <span data-i18n="heroCta2">联动可信度页</span>
+              </a>
+            </div>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="glass-strip rounded-2xl p-4">
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="heroMetric1Label">交互模式</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="assistantMode">Chat</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric1Sub">自然语言问答</div>
+              </div>
+              <div class="glass-strip rounded-2xl p-4">
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="heroMetric2Label">接口状态</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="heroApi">--</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric2Sub">后端健康检查</div>
+              </div>
+              <div class="glass-strip rounded-2xl p-4">
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="heroMetric3Label">专题引导</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="topicState">MY34</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric3Sub">专题解释能力</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card relative rounded-[30px] p-5 lg:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] uppercase tracking-[0.24em] text-slate-400" data-i18n="heroPanelKicker">Explainable Demo Layer</div>
+                <h3 class="mt-2 text-xl font-bold text-white" data-i18n="heroPanelTitle">讲解视图</h3>
+              </div>
+              <span class="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="heroPanelBadge">Presentation Ready</span>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-[0.95fr_1.05fr] md:items-center">
+              <div class="relative mx-auto max-w-[240px]">
+                <div class="orbit-core">
+                  <div class="orbit-ring"><span class="orbit-node"></span></div>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-sm text-slate-300">
+                    <span class="material-symbols-outlined text-primary text-[18px]">tips_and_updates</span>
+                    <span data-i18n="heroPanelItem1Title">适合提问什么</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="heroPanelItem1Desc">预测值含义、区间解释、风险等级、图表判读、沙尘暴专题表达。</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-sm text-slate-300">
+                    <span class="material-symbols-outlined text-primary text-[18px]">campaign</span>
+                    <span data-i18n="heroPanelItem2Title">为什么比赛需要它</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="heroPanelItem2Desc">它让平台不只是给数字，而是能主动解释结果、图表和科研意义。</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-sm text-slate-300">
+                    <span class="material-symbols-outlined text-primary text-[18px]">hub</span>
+                    <span data-i18n="heroPanelItem3Title">怎么与其他页联动</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="heroPanelItem3Desc">与预测页、评估页、探索页和科普页串联，承担解释型展示中枢。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 xl:grid-cols-4">
+          <div class="glass-strip rounded-2xl p-4">
+            <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="hud1Label">Role</div>
+            <div class="mt-2 text-lg font-semibold text-white" data-i18n="hud1Value">解释型展示中枢</div>
+          </div>
+          <div class="glass-strip rounded-2xl p-4">
+            <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="hud2Label">Linked Module</div>
+            <div class="mt-2 text-lg font-semibold text-white" data-i18n="hud2Value">预测 / 评估 / 可视化</div>
+          </div>
+          <div class="glass-strip rounded-2xl p-4">
+            <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="hud3Label">Narrative</div>
+            <div class="mt-2 text-lg font-semibold text-white" data-i18n="hud3Value">评委友好讲解</div>
+          </div>
+          <div class="glass-strip rounded-2xl p-4">
+            <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="hud4Label">Current State</div>
+            <div class="mt-2 text-lg font-semibold text-white" data-i18n="hud4Value">真实联调已接入</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 xl:grid-cols-[0.84fr_1.32fr_0.84fr]" id="assistantConsole">
+        <div class="space-y-6">
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="presetKicker">Starter Prompts</div>
+                <h3 class="mt-2 text-lg font-bold text-white" data-i18n="presetTitle">推荐问题</h3>
+              </div>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="presetTag">Starter Prompts</span>
+            </div>
+
+            <div class="space-y-3">
+              <button class="preset-btn w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-question-zh="请解释臭氧预测值、置信区间和风险等级" data-question-en="Please explain the ozone prediction, confidence interval, and risk level.">
+                <div class="mb-1 font-semibold text-white" data-i18n="preset1Title">结果解释</div>
+                <div class="text-sm leading-7 text-slate-400" data-i18n="preset1Desc">解释预测值、区间和风险等级的含义。</div>
+              </button>
+
+              <button class="preset-btn w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-question-zh="请帮我解读模型散点图和残差图" data-question-en="Please help me interpret the model scatter plot and residual plot.">
+                <div class="mb-1 font-semibold text-white" data-i18n="preset2Title">评估图表</div>
+                <div class="text-sm leading-7 text-slate-400" data-i18n="preset2Desc">解读模型评估页面里的图表。</div>
+              </button>
+
+              <button class="preset-btn w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-question-zh="请概括 MY34 沙尘暴专题适合怎么展示" data-question-en="Please summarize how the MY34 dust storm topic should be presented.">
+                <div class="mb-1 font-semibold text-white" data-i18n="preset3Title">专题展示</div>
+                <div class="text-sm leading-7 text-slate-400" data-i18n="preset3Desc">围绕沙尘暴专题给出讲解建议。</div>
+              </button>
+
+              <button class="preset-btn w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-question-zh="请解释为什么这个平台不仅仅是一个预测页面" data-question-en="Please explain why this project is more than a simple prediction page.">
+                <div class="mb-1 font-semibold text-white" data-i18n="preset4Title">平台叙事</div>
+                <div class="text-sm leading-7 text-slate-400" data-i18n="preset4Desc">帮助你从平台层面向评委讲故事。</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="quickHintKicker">Presentation Hints</div>
+                <h3 class="mt-2 text-lg font-bold text-white" data-i18n="quickHintTitle">讲解建议</h3>
+              </div>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="quickHintTag">Presentation Tips</span>
+            </div>
+
+            <div class="space-y-4">
+              <div class="insight-card rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="hint1Title">先讲什么</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="hint1Desc">先讲平台目标，再展示预测功能，再由智能助手补充图表和风险解释。</p>
+              </div>
+
+              <div class="insight-card rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="hint2Title">怎么讲可信度</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="hint2Desc">让智能助手解释散点图、残差图和指标含义，会比只报数字更直观。</p>
+              </div>
+
+              <div class="insight-card rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="hint3Title">如何现场演示</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="hint3Desc">先展示预测结果，再切到助手页，让它用自然语言总结结果意义与应用场景。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card rounded-[30px] p-6">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="chatKicker">Interactive Console</div>
+              <h3 class="mt-2 text-xl font-bold text-white" data-i18n="chatTitle">对话面板</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="chatTag">Interactive QA</span>
+              <button id="clearChatBtn" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10" data-i18n="clearBtn">清空对话</button>
+            </div>
+          </div>
+
+          <div class="mb-4 grid gap-3 md:grid-cols-3">
+            <div class="glass-strip rounded-2xl p-4">
+              <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="consoleMetric1Label">Current Role</div>
+              <div class="mt-2 text-lg font-semibold text-white" data-i18n="consoleMetric1Value">图表解释器</div>
+            </div>
+            <div class="glass-strip rounded-2xl p-4">
+              <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="consoleMetric2Label">Input Form</div>
+              <div class="mt-2 text-lg font-semibold text-white" data-i18n="consoleMetric2Value">自然语言问题</div>
+            </div>
+            <div class="glass-strip rounded-2xl p-4">
+              <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="consoleMetric3Label">Output Form</div>
+              <div class="mt-2 text-lg font-semibold text-white" data-i18n="consoleMetric3Value">解释型回答</div>
+            </div>
+          </div>
+
+          <div id="chatWrap" class="chat-wrap space-y-4 rounded-[24px] border border-white/10 p-4">
+            <div class="max-w-[85%] rounded-2xl px-4 py-3 msg-bot">
+              <div class="mb-1 text-xs uppercase tracking-[0.16em] text-slate-400" data-i18n="botLabel">助手</div>
+              <div class="text-sm leading-7 text-slate-200" id="welcomeText">你好，我可以帮助你解释臭氧预测结果、图表指标、风险等级，以及 MY34 沙尘暴等专题内容。</div>
+            </div>
+          </div>
+
+          <div class="mt-5 space-y-3">
+            <label class="block">
+              <span class="mb-2 block text-sm text-slate-300" data-i18n="inputLabel">请输入问题</span>
+              <textarea id="chatInput" rows="4" class="w-full rounded-[22px] border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="例如：请解释为什么模型评估页里的 R² 很重要？"></textarea>
+            </label>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="sendBtn" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary/90" data-i18n="sendBtn">发送</button>
+              <button id="insertDemoBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10" data-i18n="insertDemoBtn">填充示例问题</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="rightPanelKicker">Capabilities</div>
+                <h3 class="mt-2 text-lg font-bold text-white" data-i18n="rightPanelTitle">助手能力</h3>
+              </div>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="rightPanelTag">Capabilities</span>
+            </div>
+
+            <div class="space-y-4">
+              <div class="cap-card rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 flex items-center gap-2 text-white">
+                  <span class="material-symbols-outlined text-primary text-[18px]">query_stats</span>
+                  <span class="font-semibold" data-i18n="cap1Title">预测解释</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="cap1Desc">解释单点预测、24h 趋势和热图结果各自代表什么。</p>
+              </div>
+
+              <div class="cap-card rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 flex items-center gap-2 text-white">
+                  <span class="material-symbols-outlined text-primary text-[18px]">analytics</span>
+                  <span class="font-semibold" data-i18n="cap2Title">图表说明</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="cap2Desc">解读模型评估页中的散点图、残差图和总体指标。</p>
+              </div>
+
+              <div class="cap-card rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 flex items-center gap-2 text-white">
+                  <span class="material-symbols-outlined text-primary text-[18px]">science</span>
+                  <span class="font-semibold" data-i18n="cap3Title">科研科普</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="cap3Desc">将科研语言转化为评委和公众更容易理解的表达方式。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="topicKicker">Topic Guidance</div>
+                <h3 class="mt-2 text-lg font-bold text-white" data-i18n="topicTitle">专题提示</h3>
+              </div>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="topicTag">Topic Prompt</span>
+            </div>
+
+            <div class="narrative-card rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-2 text-sm font-semibold text-white" data-i18n="topicHintTitle">MY34 沙尘暴专题</div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="topicHintDesc">这个页面可以作为后续专题页的“入口解释器”，帮助你现场讲清楚为什么专题值得展示。</p>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[28px] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] uppercase tracking-[0.22em] text-slate-400" data-i18n="statusKicker">Page Status</div>
+                <h3 class="mt-2 text-lg font-bold text-white" data-i18n="statusTitle">页面状态</h3>
+              </div>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="statusTag">Integration</span>
+            </div>
+
+            <div class="space-y-3">
+              <div class="rounded-2xl border border-emerald-400/15 bg-emerald-400/8 p-4">
+                <div class="text-sm font-semibold text-white" data-i18n="status1Title">已有真实接口</div>
+                <p class="mt-1 text-sm leading-7 text-slate-300" data-i18n="status1Desc">/api/assistant/chat 已接入，可作为真实联调页展示。</p>
+              </div>
+              <div class="rounded-2xl border border-amber-400/15 bg-amber-400/8 p-4">
+                <div class="text-sm font-semibold text-white" data-i18n="status2Title">前端可直接联调</div>
+                <p class="mt-1 text-sm leading-7 text-slate-300" data-i18n="status2Desc">推荐问题、聊天发送、健康检查与中英文切换已可直接演示。</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-sm font-semibold text-white" data-i18n="status3Title">后端待增强</div>
+                <p class="mt-1 text-sm leading-7 text-slate-300" data-i18n="status3Desc">后续可增加图表上下文注入、答辩模式和专题脚本生成能力。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000/api';
+
+    const messages = {
+      zh: {
+        brandTitle: '火星臭氧智能预报平台',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: '首页 / 总览',
+        navPredict: '臭氧预测',
+        navExplorer: '时空可视化',
+        navMetrics: '模型评估',
+        navAssistant: '智能助手',
+        assistantBadge: 'Mars AI Assistant',
+        assistantTitle: '智能助手',
+        assistantDesc: '提供面向评委和用户的火星臭氧智能问答能力，可用于解释预测值、图表结果、风险等级以及 MY34 沙尘暴等专题内容。',
+        heroCta1: '开始问答',
+        heroCta2: '联动可信度页',
+        heroMetric1Label: '交互模式',
+        heroMetric1Sub: '自然语言问答',
+        heroMetric2Label: '接口状态',
+        heroMetric2Sub: '后端健康检查',
+        heroMetric3Label: '专题引导',
+        heroMetric3Sub: '专题解释能力',
+        heroPanelKicker: 'Explainable Demo Layer',
+        heroPanelTitle: '讲解视图',
+        heroPanelBadge: '答辩可用',
+        heroPanelItem1Title: '适合提问什么',
+        heroPanelItem1Desc: '预测值含义、区间解释、风险等级、图表判读、沙尘暴专题表达。',
+        heroPanelItem2Title: '为什么比赛需要它',
+        heroPanelItem2Desc: '它让平台不只是给数字，而是能主动解释结果、图表和科研意义。',
+        heroPanelItem3Title: '怎么与其他页联动',
+        heroPanelItem3Desc: '与预测页、评估页、探索页和科普页串联，承担解释型展示中枢。',
+        hud1Label: '角色定位',
+        hud1Value: '解释型展示中枢',
+        hud2Label: '联动模块',
+        hud2Value: '预测 / 评估 / 可视化',
+        hud3Label: '叙事目标',
+        hud3Value: '评委友好讲解',
+        hud4Label: '当前状态',
+        hud4Value: '真实联调已接入',
+        presetKicker: '起始提问',
+        presetTitle: '推荐问题',
+        presetTag: 'Starter Prompts',
+        preset1Title: '结果解释',
+        preset1Desc: '解释预测值、区间和风险等级的含义。',
+        preset2Title: '评估图表',
+        preset2Desc: '解读模型评估页面里的图表。',
+        preset3Title: '专题展示',
+        preset3Desc: '围绕沙尘暴专题给出讲解建议。',
+        preset4Title: '平台叙事',
+        preset4Desc: '帮助你从平台层面向评委讲故事。',
+        quickHintKicker: '展示提示',
+        quickHintTitle: '讲解建议',
+        quickHintTag: 'Presentation Tips',
+        hint1Title: '先讲什么',
+        hint1Desc: '先讲平台目标，再展示预测功能，再由智能助手补充图表和风险解释。',
+        hint2Title: '怎么讲可信度',
+        hint2Desc: '让智能助手解释散点图、残差图和指标含义，会比只报数字更直观。',
+        hint3Title: '如何现场演示',
+        hint3Desc: '先展示预测结果，再切到助手页，让它用自然语言总结结果意义与应用场景。',
+        chatKicker: '交互控制台',
+        chatTitle: '对话面板',
+        chatTag: 'Interactive QA',
+        clearBtn: '清空对话',
+        consoleMetric1Label: '当前角色',
+        consoleMetric1Value: '图表解释器',
+        consoleMetric2Label: '输入形式',
+        consoleMetric2Value: '自然语言问题',
+        consoleMetric3Label: '输出形式',
+        consoleMetric3Value: '解释型回答',
+        botLabel: '助手',
+        inputLabel: '请输入问题',
+        sendBtn: '发送',
+        insertDemoBtn: '填充示例问题',
+        rightPanelKicker: '能力说明',
+        rightPanelTitle: '助手能力',
+        rightPanelTag: 'Capabilities',
+        cap1Title: '预测解释',
+        cap1Desc: '解释单点预测、24h 趋势和热图结果各自代表什么。',
+        cap2Title: '图表说明',
+        cap2Desc: '解读模型评估页中的散点图、残差图和总体指标。',
+        cap3Title: '科研科普',
+        cap3Desc: '将科研语言转化为评委和公众更容易理解的表达方式。',
+        topicKicker: '专题引导',
+        topicTitle: '专题提示',
+        topicTag: 'Topic Prompt',
+        topicHintTitle: 'MY34 沙尘暴专题',
+        topicHintDesc: '这个页面可以作为后续专题页的“入口解释器”，帮助你现场讲清楚为什么专题值得展示。',
+        statusKicker: '页面状态',
+        statusTitle: '页面状态',
+        statusTag: '联调',
+        status1Title: '已有真实接口',
+        status1Desc: '/api/assistant/chat 已接入，可作为真实联调页展示。',
+        status2Title: '前端可直接联调',
+        status2Desc: '推荐问题、聊天发送、健康检查与中英文切换已可直接演示。',
+        status3Title: '后端待增强',
+        status3Desc: '后续可增加图表上下文注入、答辩模式和专题脚本生成能力。',
+        online: '在线',
+        offline: '离线',
+        welcomeText: '你好，我可以帮助你解释臭氧预测结果、图表指标、风险等级，以及 MY34 沙尘暴等专题内容。',
+        demoQuestion: '请解释为什么模型评估页里的 R² 很重要？',
+        emptyQuestion: '请输入问题',
+        sending: '正在思考中...',
+        sendFail: '智能助手暂时不可用，请稍后重试。',
+        cleared: '对话已清空'
+      },
+      en: {
+        brandTitle: 'Mars Ozone Intelligence Platform',
+        brandSub: 'Deep-space Forecast Platform',
+        navHome: 'Home / Overview',
+        navPredict: 'Ozone Forecast',
+        navExplorer: 'Exploration',
+        navMetrics: 'Model Evaluation',
+        navAssistant: 'AI Assistant',
+        assistantBadge: 'Mars AI Assistant',
+        assistantTitle: 'AI Assistant',
+        assistantDesc: 'Provides a judge-friendly and user-facing Mars ozone QA interface for explaining predictions, chart results, risk levels, and topics such as the MY34 dust storm.',
+        heroCta1: 'Start QA',
+        heroCta2: 'Go to Credibility',
+        heroMetric1Label: 'Interaction Mode',
+        heroMetric1Sub: 'Natural language QA',
+        heroMetric2Label: 'API Status',
+        heroMetric2Sub: 'Backend health check',
+        heroMetric3Label: 'Topic Guidance',
+        heroMetric3Sub: 'Topic explanation support',
+        heroPanelKicker: 'Explainable Demo Layer',
+        heroPanelTitle: 'Presentation View',
+        heroPanelBadge: 'Presentation Ready',
+        heroPanelItem1Title: 'What to ask',
+        heroPanelItem1Desc: 'Prediction meaning, interval explanation, risk levels, chart reading, and dust storm narrative.',
+        heroPanelItem2Title: 'Why the demo needs this',
+        heroPanelItem2Desc: 'It turns the platform from a result board into a system that can explain numbers, charts, and scientific meaning.',
+        heroPanelItem3Title: 'How it links with other pages',
+        heroPanelItem3Desc: 'It connects forecast, evaluation, exploration, and science pages as the explainable presentation hub.',
+        hud1Label: 'Role',
+        hud1Value: 'Explainable Demo Hub',
+        hud2Label: 'Linked Modules',
+        hud2Value: 'Forecast / Evaluation / Exploration',
+        hud3Label: 'Narrative Goal',
+        hud3Value: 'Judge-friendly Explanation',
+        hud4Label: 'Current State',
+        hud4Value: 'Real API Linked',
+        presetKicker: 'Starter Prompts',
+        presetTitle: 'Suggested Questions',
+        presetTag: 'Starter Prompts',
+        preset1Title: 'Result explanation',
+        preset1Desc: 'Explain predictions, intervals, and risk levels.',
+        preset2Title: 'Evaluation charts',
+        preset2Desc: 'Interpret charts in the model evaluation page.',
+        preset3Title: 'Topic narrative',
+        preset3Desc: 'Give presentation ideas for the dust storm topic.',
+        preset4Title: 'Platform story',
+        preset4Desc: 'Help explain why this is more than a simple prediction page.',
+        quickHintKicker: 'Presentation Hints',
+        quickHintTitle: 'Presentation Tips',
+        quickHintTag: 'Presentation Tips',
+        hint1Title: 'What to present first',
+        hint1Desc: 'Start with the platform goal, then show forecasting, and let the assistant explain charts and risks.',
+        hint2Title: 'How to explain trust',
+        hint2Desc: 'Using the assistant to interpret scatter plots, residual plots, and metrics is more intuitive than only reporting numbers.',
+        hint3Title: 'How to demo live',
+        hint3Desc: 'Show the forecast first, then open the assistant page and let it summarize the meaning and application in natural language.',
+        chatKicker: 'Interactive Console',
+        chatTitle: 'Conversation Panel',
+        chatTag: 'Interactive QA',
+        clearBtn: 'Clear Chat',
+        consoleMetric1Label: 'Current Role',
+        consoleMetric1Value: 'Chart Interpreter',
+        consoleMetric2Label: 'Input Form',
+        consoleMetric2Value: 'Natural Language Question',
+        consoleMetric3Label: 'Output Form',
+        consoleMetric3Value: 'Explainable Answer',
+        botLabel: 'Assistant',
+        inputLabel: 'Type your question',
+        sendBtn: 'Send',
+        insertDemoBtn: 'Insert Demo Question',
+        rightPanelKicker: 'Capabilities',
+        rightPanelTitle: 'Assistant Capabilities',
+        rightPanelTag: 'Capabilities',
+        cap1Title: 'Forecast Explanation',
+        cap1Desc: 'Explain what point forecasts, 24h trends, and heatmaps actually mean.',
+        cap2Title: 'Chart Interpretation',
+        cap2Desc: 'Interpret scatter plots, residual plots, and overall evaluation metrics.',
+        cap3Title: 'Science Communication',
+        cap3Desc: 'Translate research language into a form easier for judges and the public to understand.',
+        topicKicker: 'Topic Guidance',
+        topicTitle: 'Topic Prompt',
+        topicTag: 'Topic Prompt',
+        topicHintTitle: 'MY34 Dust Storm Topic',
+        topicHintDesc: 'This page can act as an entry explanation layer for future topic pages during live presentation.',
+        statusKicker: 'Page Status',
+        statusTitle: 'Page Status',
+        statusTag: 'Integration',
+        status1Title: 'Real API Exists',
+        status1Desc: '/api/assistant/chat is connected and ready for live integration demos.',
+        status2Title: 'Frontend Ready',
+        status2Desc: 'Suggested prompts, chat sending, health check, and language switch are ready for direct demo use.',
+        status3Title: 'Backend To Enhance',
+        status3Desc: 'Later, you can add chart context injection, defense mode, and topic script generation.',
+        online: 'Online',
+        offline: 'Offline',
+        welcomeText: 'Hello. I can help explain ozone forecast results, chart metrics, risk levels, and topics such as the MY34 dust storm.',
+        demoQuestion: 'Please explain why R² is important on the model evaluation page.',
+        emptyQuestion: 'Please type a question',
+        sending: 'Thinking...',
+        sendFail: 'The assistant is temporarily unavailable. Please try again later.',
+        cleared: 'Chat cleared'
+      }
+    };
+
+    const state = {
+      lang: localStorage.getItem('marsLang') || 'zh',
+      loading: false
+    };
+
+    function t(key) {
+      return (messages[state.lang] && messages[state.lang][key]) || key;
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = state.lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
+      });
+
+      const welcome = document.getElementById('welcomeText');
+      if (welcome && welcome.dataset.dynamicWelcome !== 'true') {
+        welcome.textContent = t('welcomeText');
+      }
+
+      const input = document.getElementById('chatInput');
+      if (input) input.placeholder = t('demoQuestion');
+
+      document.getElementById('langZh').className =
+        state.lang === 'zh'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+
+      document.getElementById('langEn').className =
+        state.lang === 'en'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+    }
+
+    function showToast(message, isError = false) {
+      const old = document.getElementById('toast');
+      if (old) old.remove();
+
+      const div = document.createElement('div');
+      div.id = 'toast';
+      div.className = 'toast';
+      div.style.borderColor = isError ? 'rgba(244,63,94,0.25)' : 'rgba(19,164,236,0.25)';
+      div.textContent = message;
+      document.body.appendChild(div);
+
+      setTimeout(() => {
+        const el = document.getElementById('toast');
+        if (el) el.remove();
+      }, 2400);
+    }
+
+    async function checkHealth() {
+      const candidates = [`${API_BASE}/health`, '/api/health'];
+      const apiStatus = document.getElementById('apiStatus');
+      const heroApi = document.getElementById('heroApi');
+
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (res.ok && data.code === 0) {
+            apiStatus.textContent = t('online');
+            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
+            heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
+            return;
+          }
+        } catch (e) {}
+      }
+
+      apiStatus.textContent = t('offline');
+      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
+      heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
+    }
+
+    function appendMessage(text, role, isDynamicWelcome = false) {
+      const chatWrap = document.getElementById('chatWrap');
+      const wrapper = document.createElement('div');
+      wrapper.className = role === 'user'
+        ? 'ml-auto max-w-[85%] rounded-2xl px-4 py-3 msg-user'
+        : 'max-w-[85%] rounded-2xl px-4 py-3 msg-bot';
+
+      const label = document.createElement('div');
+      label.className = 'mb-1 text-xs uppercase tracking-[0.16em] text-slate-400';
+      label.textContent = role === 'user' ? (state.lang === 'zh' ? '用户' : 'User') : t('botLabel');
+
+      const content = document.createElement('div');
+      content.className = 'text-sm leading-7 text-slate-200 whitespace-pre-wrap';
+      content.textContent = text;
+      if (isDynamicWelcome) content.dataset.dynamicWelcome = 'true';
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(content);
+      chatWrap.appendChild(wrapper);
+      chatWrap.scrollTop = chatWrap.scrollHeight;
+      return wrapper;
+    }
+
+    function appendTyping() {
+      const chatWrap = document.getElementById('chatWrap');
+      const wrapper = document.createElement('div');
+      wrapper.id = 'typingMessage';
+      wrapper.className = 'max-w-[85%] rounded-2xl px-4 py-3 msg-bot';
+
+      const label = document.createElement('div');
+      label.className = 'mb-1 text-xs uppercase tracking-[0.16em] text-slate-400';
+      label.textContent = t('botLabel');
+
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2';
+
+      const text = document.createElement('span');
+      text.className = 'text-sm text-slate-300';
+      text.textContent = t('sending');
+
+      const dots = document.createElement('div');
+      dots.className = 'flex items-center gap-1.5';
+      dots.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+
+      row.appendChild(text);
+      row.appendChild(dots);
+      wrapper.appendChild(label);
+      wrapper.appendChild(row);
+      chatWrap.appendChild(wrapper);
+      chatWrap.scrollTop = chatWrap.scrollHeight;
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typingMessage');
+      if (el) el.remove();
+    }
+
+    async function sendMessage() {
+      if (state.loading) return;
+      const input = document.getElementById('chatInput');
+      const question = input.value.trim();
+      if (!question) {
+        showToast(t('emptyQuestion'), true);
+        return;
+      }
+
+      appendMessage(question, 'user');
+      input.value = '';
+      state.loading = true;
+      appendTyping();
+
+      try {
+        const res = await fetch(`${API_BASE}/assistant/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+
+        const json = await res.json();
+        removeTyping();
+        if (!res.ok || json.code !== 0) throw new Error(json.message || 'Request failed');
+
+        const answer = (json.data && (json.data.answer || json.data.reply || json.data.message)) || '';
+        appendMessage(answer || t('sendFail'), 'bot', true);
+      } catch (e) {
+        appendMessage(t('sendFail'), 'bot', true);
+      } finally {
+        state.loading = false;
+      }
+    }
+
+    function clearChat() {
+      const chatWrap = document.getElementById('chatWrap');
+      chatWrap.innerHTML = '';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'max-w-[85%] rounded-2xl px-4 py-3 msg-bot';
+
+      const label = document.createElement('div');
+      label.className = 'mb-1 text-xs uppercase tracking-[0.16em] text-slate-400';
+      label.textContent = t('botLabel');
+
+      const content = document.createElement('div');
+      content.className = 'text-sm leading-7 text-slate-200';
+      content.id = 'welcomeText';
+      content.textContent = t('welcomeText');
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(content);
+      chatWrap.appendChild(wrapper);
+      showToast(t('cleared'));
+    }
+
+    function bindPresetButtons() {
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const value = state.lang === 'zh' ? btn.dataset.questionZh : btn.dataset.questionEn;
+          document.getElementById('chatInput').value = value || t('demoQuestion');
+          document.getElementById('chatInput').focus();
+        });
+      });
+    }
+
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('insertDemoBtn').addEventListener('click', () => {
+      document.getElementById('chatInput').value = t('demoQuestion');
+      document.getElementById('chatInput').focus();
+    });
+    document.getElementById('clearChatBtn').addEventListener('click', clearChat);
+    document.getElementById('chatInput').addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') sendMessage();
+    });
+    document.getElementById('langZh').addEventListener('click', () => {
+      state.lang = 'zh';
+      localStorage.setItem('marsLang', 'zh');
+      applyI18n();
+      checkHealth();
+    });
+    document.getElementById('langEn').addEventListener('click', () => {
+      state.lang = 'en';
+      localStorage.setItem('marsLang', 'en');
+      applyI18n();
+      checkHealth();
+    });
+
+    bindPresetButtons();
+    applyI18n();
+    checkHealth();
+  </script>
+</body>
+</html>

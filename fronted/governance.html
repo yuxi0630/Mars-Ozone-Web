@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mars Ozone Platform - Data Governance</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700"
+    rel="stylesheet"
+  />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#13a4ec',
+            accent: '#ff7b54',
+            'bg-dark': '#081117',
+            'panel-dark': '#0f1b22',
+            'line-dark': '#1f2d35'
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 0 60px rgba(19,164,236,0.16)',
+            card: '0 20px 60px rgba(0,0,0,0.32)'
+          },
+          backgroundImage: {
+            'hero-deep':
+              'radial-gradient(circle at 22% 18%, rgba(255,123,84,0.20), transparent 18%), radial-gradient(circle at 72% 26%, rgba(19,164,236,0.22), transparent 22%), radial-gradient(circle at 48% 80%, rgba(19,164,236,0.08), transparent 30%), linear-gradient(135deg, #081117 0%, #0b1419 46%, #121c22 100%)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(19,164,236,0.08), transparent 30%),
+        radial-gradient(circle at 18% 10%, rgba(255,123,84,0.10), transparent 18%),
+        radial-gradient(circle at 80% 20%, rgba(19,164,236,0.06), transparent 22%),
+        #081117;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 38px 38px;
+    }
+    .panel-card {
+      background: rgba(15, 27, 34, 0.76);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.30);
+    }
+    .soft-panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+    }
+    .metric-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .mini-grid {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9999;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: white;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+      font-size: 14px;
+    }
+    .progress-line {
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-line::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(19,164,236,0), rgba(19,164,236,0.65), rgba(255,123,84,0));
+      transform: translateX(-100%);
+      animation: sweep 3.8s linear infinite;
+    }
+    @keyframes sweep {
+      to { transform: translateX(100%); }
+    }
+  </style>
+</head>
+
+<body class="bg-bg-dark text-slate-100 antialiased">
+  <div class="relative min-h-screen overflow-x-hidden">
+    <div class="pointer-events-none absolute inset-0 grid-bg opacity-20"></div>
+
+    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#081117]/80 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
+        <div class="flex items-center gap-4">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
+            <span class="material-symbols-outlined text-[26px]">deployed_code</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
+            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
+          </div>
+        </div>
+
+        <div class="hidden items-center gap-8 md:flex">
+          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
+          <a href="predict.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navPredict">臭氧预测</a>
+          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navExplorer">时空可视化</a>
+          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
+          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navAssistant">智能助手</a>
+          <a href="user.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navUser">用户中心</a>
+          <a href="governance.html" class="text-sm font-medium text-primary" data-i18n="navGovernance">数据治理</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
+            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
+            <span>API</span>
+            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
+          </div>
+
+          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
+            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
+            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
+      <section class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-hero-deep p-6 shadow-glow lg:p-8">
+        <div class="pointer-events-none absolute inset-y-0 right-0 w-[42%] bg-gradient-to-l from-primary/8 via-transparent to-transparent"></div>
+        <div class="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+          <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+              <span class="material-symbols-outlined text-[16px]">database</span>
+              <span data-i18n="govBadge">Data Governance Hub</span>
+            </div>
+
+            <h2 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-white lg:text-5xl" data-i18n="govTitle">
+              数据治理控制台
+            </h2>
+            <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="govDesc">
+              面向数据上传、元信息记录、治理流程、版本管理与质量控制构建平台能力，让评委明确看到系统具备长期运维、数据闭环与工程完整性，而不仅是单次预测展示。
+            </p>
+
+            <div class="mt-7 flex flex-wrap gap-3">
+              <button id="scrollUploadBtn" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary/90" data-i18n="ctaUpload">
+                进入上传台
+              </button>
+              <button id="scrollWorkflowBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10" data-i18n="ctaWorkflow">
+                查看治理流程
+              </button>
+            </div>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="heroMetric1Label">上传状态</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="uploadState">--</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric1Sub">当前数据集上传结果</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="heroMetric2Label">接口状态</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="heroApi">--</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric2Sub">后端健康检查</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="heroMetric3Label">治理阶段</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="workflowState">Stage-1</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric3Sub">上传 / 元信息 / 版本预留</div>
+              </div>
+            </div>
+
+            <div class="mt-8 grid gap-3 md:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div class="mb-1 text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hud1Label">当前已接</div>
+                <div class="text-sm text-white" data-i18n="hud1Value">上传接口 + 元信息预览</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div class="mb-1 text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hud2Label">后续待补</div>
+                <div class="text-sm text-white" data-i18n="hud2Value">审核 / 版本 / 更新记录</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div class="mb-1 text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="hud3Label">答辩价值</div>
+                <div class="text-sm text-white" data-i18n="hud3Value">证明平台具备治理闭环</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative z-10 panel-card rounded-[2rem] p-5 lg:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-white" data-i18n="guideTitle">治理说明 / Judge Notes</h3>
+                <p class="mt-1 text-sm text-slate-400" data-i18n="guideSub">让评委快速理解当前已做能力与后续扩展路径。</p>
+              </div>
+              <button
+                id="fillDemoBtn"
+                class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10"
+                data-i18n="fillDemoBtn"
+              >
+                填充示例
+              </button>
+            </div>
+
+            <div class="grid gap-3">
+              <div class="soft-panel rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                  <span class="material-symbols-outlined text-primary text-[18px]">upload_file</span>
+                  <span data-i18n="guideItem1Title">已接入能力</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="guideItem1Desc">
+                  当前已经接入真实上传能力，可提交文件并同步记录名称、类型、描述等元信息。
+                </p>
+              </div>
+
+              <div class="soft-panel rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                  <span class="material-symbols-outlined text-primary text-[18px]">rule_settings</span>
+                  <span data-i18n="guideItem2Title">平台治理路径</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="guideItem2Desc">
+                  页面清晰区分上传、审核、版本、增强、回滚和更新记录等阶段，便于后续分阶段补接口。
+                </p>
+              </div>
+
+              <div class="soft-panel rounded-2xl p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-200">
+                  <span class="material-symbols-outlined text-primary text-[18px]">view_timeline</span>
+                  <span data-i18n="guideItem3Title">比赛表达价值</span>
+                </div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="guideItem3Desc">
+                  这一页专门用于证明系统不仅能预测，还能承载数据入库、质量控制与长期演进能力。
+                </p>
+              </div>
+
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="mb-3 flex items-center justify-between">
+                  <span class="text-sm font-semibold text-white" data-i18n="statusLaneTitle">治理状态总览</span>
+                  <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="statusLaneTag">Stage Snapshot</span>
+                </div>
+                <div class="space-y-3 text-sm">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400" data-i18n="snap1Label">Upload API</span>
+                    <span class="text-emerald-300" data-i18n="snap1Value">已接入</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400" data-i18n="snap2Label">Metadata</span>
+                    <span class="text-emerald-300" data-i18n="snap2Value">前端联动中</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400" data-i18n="snap3Label">Review / Version</span>
+                    <span class="text-amber-300" data-i18n="snap3Value">预留展示</span>
+                  </div>
+                  <div class="h-2 overflow-hidden rounded-full bg-white/5">
+                    <div class="progress-line h-full w-[42%] rounded-full bg-gradient-to-r from-primary to-accent"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
+        <div class="space-y-6" id="uploadSection">
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-white" data-i18n="uploadTitle">数据上传台</h3>
+                <p class="mt-1 text-sm text-slate-400" data-i18n="uploadSub">当前页的真实联调核心区：上传数据集并同步展示元信息。</p>
+              </div>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="uploadTag">Dataset Upload</span>
+            </div>
+
+            <div class="grid gap-5">
+              <label class="block">
+                <span class="mb-2 block text-sm text-slate-300" data-i18n="labelDatasetName">数据集名称</span>
+                <input id="datasetName" type="text" class="w-full rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="Mars Ozone Grid Dataset" />
+              </label>
+
+              <div class="grid gap-5 md:grid-cols-2">
+                <label class="block">
+                  <span class="mb-2 block text-sm text-slate-300" data-i18n="labelDatasetType">数据类型</span>
+                  <select id="datasetType" class="w-full rounded-2xl border-white/10 bg-white/5 text-white focus:border-primary focus:ring-primary">
+                    <option value="mcd">mcd</option>
+                    <option value="openmars">openmars</option>
+                    <option value="derived">derived</option>
+                  </select>
+                </label>
+
+                <label class="block">
+                  <span class="mb-2 block text-sm text-slate-300" data-i18n="labelDatasetFile">上传文件</span>
+                  <input id="datasetFile" type="file" class="w-full rounded-2xl border-white/10 bg-white/5 text-white file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white" />
+                </label>
+              </div>
+
+              <label class="block">
+                <span class="mb-2 block text-sm text-slate-300" data-i18n="labelDatasetDesc">描述</span>
+                <textarea id="datasetDesc" rows="5" class="w-full rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="Dataset description..."></textarea>
+              </label>
+
+              <div class="flex flex-wrap gap-3">
+                <button id="uploadBtn" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary/90" data-i18n="uploadBtn">
+                  上传数据集
+                </button>
+                <button id="clearBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10" data-i18n="clearBtn">
+                  清空表单
+                </button>
+              </div>
+
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 flex items-center gap-2 text-sm text-slate-300">
+                  <span class="material-symbols-outlined text-primary text-[18px]">info</span>
+                  <span data-i18n="uploadStatusTitle">上传状态</span>
+                </div>
+                <div class="text-sm text-slate-400" id="uploadStatusText">--</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-white" data-i18n="metaTitle">元信息预览</h3>
+                <p class="mt-1 text-sm text-slate-400" data-i18n="metaSub">用于在答辩中强调：上传不是黑盒，而是伴随元数据记录与可追溯说明。</p>
+              </div>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="metaTag">Metadata</span>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="metric-card rounded-2xl p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="metaField1">当前名称</div>
+                <div class="mt-2 text-lg font-semibold text-white" id="metaName">--</div>
+              </div>
+
+              <div class="metric-card rounded-2xl p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="metaField2">当前类型</div>
+                <div class="mt-2 text-lg font-semibold text-white" id="metaType">--</div>
+              </div>
+
+              <div class="metric-card rounded-2xl p-4 sm:col-span-2">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="metaField3">描述摘要</div>
+                <div class="mt-2 text-lg font-semibold text-white leading-8" id="metaDesc">--</div>
+              </div>
+
+              <div class="metric-card rounded-2xl p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="metaField4">来源标记</div>
+                <div class="mt-2 text-lg font-semibold text-white" data-i18n="metaField4Value">frontend-upload</div>
+              </div>
+
+              <div class="metric-card rounded-2xl p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="metaField5">当前定位</div>
+                <div class="mt-2 text-lg font-semibold text-white" data-i18n="metaField5Value">上传 + 记录</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6" id="workflowSection">
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-bold text-white" data-i18n="workflowTitle">治理流程分层</h3>
+                <p class="mt-1 text-sm text-slate-400" data-i18n="workflowSub">把“已做能力”和“后续预留”明确拆开，是这页最重要的答辩策略。</p>
+              </div>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="workflowTag">Workflow</span>
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between rounded-2xl border border-emerald-400/20 bg-emerald-400/8 px-4 py-3">
+                <span data-i18n="flow1">1. 数据上传</span>
+                <span class="text-emerald-300" data-i18n="flow1State">Active</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="flow2">2. 元信息记录</span>
+                <span class="text-primary" data-i18n="flow2State">前端可展示</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="flow3">3. 数据审核</span>
+                <span class="text-slate-400" data-i18n="reserved">预留</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="flow4">4. 数据版本</span>
+                <span class="text-slate-400" data-i18n="reserved">预留</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="flow5">5. 数据增强</span>
+                <span class="text-slate-400" data-i18n="reserved">预留</span>
+              </div>
+              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <span data-i18n="flow6">6. 更新记录 / 回滚</span>
+                <span class="text-slate-400" data-i18n="reserved">预留</span>
+              </div>
+            </div>
+
+            <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="mb-2 text-sm font-semibold text-white" data-i18n="workflowNoteTitle">当前页面状态</div>
+              <p class="text-sm leading-7 text-slate-400" data-i18n="workflowNoteDesc">
+                当前这页已接入真实上传接口，元信息可联动展示；审核、版本、增强和回滚仍建议以前端占位 + 后端待补的方式推进。
+              </p>
+            </div>
+          </div>
+
+          <div class="grid gap-6 lg:grid-cols-[0.96fr_1.04fr]">
+            <div class="panel-card rounded-[2rem] p-6">
+              <div class="mb-5 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white" data-i18n="qualityTitle">质量与版本说明</h3>
+                <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="qualityTag">Quality Layer</span>
+              </div>
+
+              <div class="space-y-4">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+                    <span class="font-semibold" data-i18n="quality1Title">质量检查</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="quality1Desc">
+                    后续可加入空值检查、异常值检测、字段一致性校验与时间维度校验。
+                  </p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-primary text-[18px]">inventory_2</span>
+                    <span class="font-semibold" data-i18n="quality2Title">版本管理</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="quality2Desc">
+                    可对不同来源、不同火星年范围和不同清洗版本的数据进行版本标记与回滚。
+                  </p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-primary text-[18px]">history</span>
+                    <span class="font-semibold" data-i18n="quality3Title">更新记录</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="quality3Desc">
+                    可在答辩中展示平台数据不是静态资源，而是具备持续更新、记录与回滚能力。
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-card rounded-[2rem] p-6">
+              <div class="mb-5 flex items-center justify-between">
+                <div>
+                  <h3 class="text-xl font-bold text-white" data-i18n="proofTitle">平台完整性证明</h3>
+                  <p class="mt-1 text-sm text-slate-400" data-i18n="proofSub">这部分用于帮你答辩时讲“为什么一定要有数据治理页”。</p>
+                </div>
+                <span class="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="proofTag">Judge View</span>
+              </div>
+
+              <div class="mini-grid rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
+                <div class="space-y-4">
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="mb-2 flex items-center gap-2 text-white">
+                      <span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+                      <span class="font-semibold" data-i18n="proof1Title">已有真实接口</span>
+                    </div>
+                    <p class="text-sm leading-7 text-slate-400" data-i18n="proof1Desc">
+                      当前已接入真实数据上传接口，可作为数据治理页的核心落地点。
+                    </p>
+                  </div>
+
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="mb-2 flex items-center gap-2 text-white">
+                      <span class="material-symbols-outlined text-primary text-[18px]">deployed_code</span>
+                      <span class="font-semibold" data-i18n="proof2Title">前端可直接联调</span>
+                    </div>
+                    <p class="text-sm leading-7 text-slate-400" data-i18n="proof2Desc">
+                      上传表单、状态反馈、元信息预览与健康检查已能形成完整演示闭环。
+                    </p>
+                  </div>
+
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="mb-2 flex items-center gap-2 text-white">
+                      <span class="material-symbols-outlined text-accent text-[18px]">construction</span>
+                      <span class="font-semibold" data-i18n="proof3Title">后端待新增</span>
+                    </div>
+                    <p class="text-sm leading-7 text-slate-400" data-i18n="proof3Desc">
+                      数据集详情、版本列表、审核状态、更新日志等能力建议作为下一阶段接口扩展。
+                    </p>
+                  </div>
+
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="mb-2 flex items-center gap-2 text-white">
+                      <span class="material-symbols-outlined text-accent text-[18px]">view_in_ar</span>
+                      <span class="font-semibold" data-i18n="proof4Title">先占位展示</span>
+                    </div>
+                    <p class="text-sm leading-7 text-slate-400" data-i18n="proof4Desc">
+                      审核、版本、增强、回滚与更新记录可以先做结构展示，再逐步补后端能力。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card rounded-[2rem] p-6">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-bold text-white" data-i18n="answerTitle">答辩讲法建议</h3>
+                <p class="mt-1 text-sm text-slate-400" data-i18n="answerSub">这一块不是功能，而是帮助你在比赛中把工程完整性讲明白。</p>
+              </div>
+              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400" data-i18n="answerTag">Pitch Layer</span>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="answer1Title">第一句</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="answer1Desc">我们不是单点预测 demo，而是围绕数据、模型、解释和治理构建完整平台。</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="answer2Title">第二句</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="answer2Desc">数据治理页展示了平台如何支持数据接入、元信息留痕和后续版本化管理。</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-semibold text-white" data-i18n="answer3Title">第三句</div>
+                <p class="text-sm leading-7 text-slate-400" data-i18n="answer3Desc">这意味着系统具备长期演进能力，能够服务后续模型升级与专题研究扩展。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000/api';
+
+    const messages = {
+      zh: {
+        brandTitle: '火星臭氧智能预报平台',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: '首页 / 总览',
+        navPredict: '臭氧预测',
+        navExplorer: '时空可视化',
+        navMetrics: '模型评估',
+        navAssistant: '智能助手',
+        navUser: '用户中心',
+        navGovernance: '数据治理',
+        govBadge: 'Data Governance Hub',
+        govTitle: '数据治理控制台',
+        govDesc: '面向数据上传、元信息记录、治理流程、版本管理与质量控制构建平台能力，让评委明确看到系统具备长期运维、数据闭环与工程完整性，而不仅是单次预测展示。',
+        ctaUpload: '进入上传台',
+        ctaWorkflow: '查看治理流程',
+        heroMetric1Label: '上传状态',
+        heroMetric1Sub: '当前数据集上传结果',
+        heroMetric2Label: '接口状态',
+        heroMetric2Sub: '后端健康检查',
+        heroMetric3Label: '治理阶段',
+        heroMetric3Sub: '上传 / 元信息 / 版本预留',
+        hud1Label: '当前已接',
+        hud1Value: '上传接口 + 元信息预览',
+        hud2Label: '后续待补',
+        hud2Value: '审核 / 版本 / 更新记录',
+        hud3Label: '答辩价值',
+        hud3Value: '证明平台具备治理闭环',
+        guideTitle: '治理说明 / Judge Notes',
+        guideSub: '让评委快速理解当前已做能力与后续扩展路径。',
+        fillDemoBtn: '填充示例',
+        guideItem1Title: '已接入能力',
+        guideItem1Desc: '当前已经接入真实上传能力，可提交文件并同步记录名称、类型、描述等元信息。',
+        guideItem2Title: '平台治理路径',
+        guideItem2Desc: '页面清晰区分上传、审核、版本、增强、回滚和更新记录等阶段，便于后续分阶段补接口。',
+        guideItem3Title: '比赛表达价值',
+        guideItem3Desc: '这一页专门用于证明系统不仅能预测，还能承载数据入库、质量控制与长期演进能力。',
+        statusLaneTitle: '治理状态总览',
+        statusLaneTag: '阶段快照',
+        snap1Label: 'Upload API',
+        snap1Value: '已接入',
+        snap2Label: 'Metadata',
+        snap2Value: '前端联动中',
+        snap3Label: 'Review / Version',
+        snap3Value: '预留展示',
+        uploadTitle: '数据上传台',
+        uploadSub: '当前页的真实联调核心区：上传数据集并同步展示元信息。',
+        uploadTag: '数据上传',
+        labelDatasetName: '数据集名称',
+        labelDatasetType: '数据类型',
+        labelDatasetDesc: '描述',
+        labelDatasetFile: '上传文件',
+        uploadBtn: '上传数据集',
+        clearBtn: '清空表单',
+        uploadStatusTitle: '上传状态',
+        metaTitle: '元信息预览',
+        metaSub: '用于在答辩中强调：上传不是黑盒，而是伴随元数据记录与可追溯说明。',
+        metaTag: '元信息',
+        metaField1: '当前名称',
+        metaField2: '当前类型',
+        metaField3: '描述摘要',
+        metaField4: '来源标记',
+        metaField4Value: 'frontend-upload',
+        metaField5: '当前定位',
+        metaField5Value: '上传 + 记录',
+        workflowTitle: '治理流程分层',
+        workflowSub: '把“已做能力”和“后续预留”明确拆开，是这页最重要的答辩策略。',
+        workflowTag: '流程',
+        flow1: '1. 数据上传',
+        flow1State: 'Active',
+        flow2: '2. 元信息记录',
+        flow2State: '前端可展示',
+        flow3: '3. 数据审核',
+        flow4: '4. 数据版本',
+        flow5: '5. 数据增强',
+        flow6: '6. 更新记录 / 回滚',
+        reserved: '预留',
+        workflowNoteTitle: '当前页面状态',
+        workflowNoteDesc: '当前这页已接入真实上传接口，元信息可联动展示；审核、版本、增强和回滚仍建议以前端占位 + 后端待补的方式推进。',
+        qualityTitle: '质量与版本说明',
+        qualityTag: '质量层',
+        quality1Title: '质量检查',
+        quality1Desc: '后续可加入空值检查、异常值检测、字段一致性校验与时间维度校验。',
+        quality2Title: '版本管理',
+        quality2Desc: '可对不同来源、不同火星年范围和不同清洗版本的数据进行版本标记与回滚。',
+        quality3Title: '更新记录',
+        quality3Desc: '可在答辩中展示平台数据不是静态资源，而是具备持续更新、记录与回滚能力。',
+        proofTitle: '平台完整性证明',
+        proofSub: '这部分用于帮你答辩时讲“为什么一定要有数据治理页”。',
+        proofTag: '评委视角',
+        proof1Title: '已有真实接口',
+        proof1Desc: '当前已接入真实数据上传接口，可作为数据治理页的核心落地点。',
+        proof2Title: '前端可直接联调',
+        proof2Desc: '上传表单、状态反馈、元信息预览与健康检查已能形成完整演示闭环。',
+        proof3Title: '后端待新增',
+        proof3Desc: '数据集详情、版本列表、审核状态、更新日志等能力建议作为下一阶段接口扩展。',
+        proof4Title: '先占位展示',
+        proof4Desc: '审核、版本、增强、回滚与更新记录可以先做结构展示，再逐步补后端能力。',
+        answerTitle: '答辩讲法建议',
+        answerSub: '这一块不是功能，而是帮助你在比赛中把工程完整性讲明白。',
+        answerTag: '答辩层',
+        answer1Title: '第一句',
+        answer1Desc: '我们不是单点预测 demo，而是围绕数据、模型、解释和治理构建完整平台。',
+        answer2Title: '第二句',
+        answer2Desc: '数据治理页展示了平台如何支持数据接入、元信息留痕和后续版本化管理。',
+        answer3Title: '第三句',
+        answer3Desc: '这意味着系统具备长期演进能力，能够服务后续模型升级与专题研究扩展。',
+        online: '在线',
+        offline: '离线',
+        uploadSuccess: '上传成功',
+        uploadFail: '上传失败',
+        noFile: '请先选择文件',
+        uploaded: '已上传',
+        waiting: '待上传',
+        demoName: 'Mars Ozone Governance Dataset',
+        demoDesc: '用于展示火星臭氧预测平台的数据治理上传能力与元信息记录。',
+        cleared: '表单已清空'
+      },
+      en: {
+        brandTitle: 'Mars Ozone Intelligence Platform',
+        brandSub: 'Deep-space Forecast Platform',
+        navHome: 'Home / Overview',
+        navPredict: 'Ozone Forecast',
+        navExplorer: 'Exploration',
+        navMetrics: 'Model Evaluation',
+        navAssistant: 'AI Assistant',
+        navUser: 'User Center',
+        navGovernance: 'Data Governance',
+        govBadge: 'Data Governance Hub',
+        govTitle: 'Data Governance Console',
+        govDesc: 'Build platform capability around upload, metadata logging, governance workflow, versioning and quality control, so judges can clearly see long-term operation, data lifecycle control and engineering completeness rather than a one-time forecast demo.',
+        ctaUpload: 'Open Upload Console',
+        ctaWorkflow: 'View Workflow',
+        heroMetric1Label: 'Upload Status',
+        heroMetric1Sub: 'Current dataset upload result',
+        heroMetric2Label: 'API Status',
+        heroMetric2Sub: 'Backend health check',
+        heroMetric3Label: 'Governance Stage',
+        heroMetric3Sub: 'Upload / metadata / version reserve',
+        hud1Label: 'Integrated',
+        hud1Value: 'Upload API + metadata preview',
+        hud2Label: 'To Be Added',
+        hud2Value: 'Review / version / update log',
+        hud3Label: 'Pitch Value',
+        hud3Value: 'Proves governance lifecycle',
+        guideTitle: 'Governance Guide / Judge Notes',
+        guideSub: 'Help judges quickly understand what is already built and what is reserved.',
+        fillDemoBtn: 'Fill Demo',
+        guideItem1Title: 'Integrated Capability',
+        guideItem1Desc: 'A real upload capability is already connected, allowing file submission and synchronized metadata recording.',
+        guideItem2Title: 'Governance Path',
+        guideItem2Desc: 'The page clearly separates upload, review, versioning, enhancement, rollback and update records for phased backend expansion.',
+        guideItem3Title: 'Competition Value',
+        guideItem3Desc: 'This page proves the system is not only predictive, but also capable of ingestion, quality control and long-term evolution.',
+        statusLaneTitle: 'Governance Snapshot',
+        statusLaneTag: 'Stage Snapshot',
+        snap1Label: 'Upload API',
+        snap1Value: 'Integrated',
+        snap2Label: 'Metadata',
+        snap2Value: 'Frontend-linked',
+        snap3Label: 'Review / Version',
+        snap3Value: 'Reserved',
+        uploadTitle: 'Dataset Upload Console',
+        uploadSub: 'Core real-integration zone of this page: upload a dataset and sync metadata display.',
+        uploadTag: 'Upload',
+        labelDatasetName: 'Dataset Name',
+        labelDatasetType: 'Dataset Type',
+        labelDatasetDesc: 'Description',
+        labelDatasetFile: 'File',
+        uploadBtn: 'Upload Dataset',
+        clearBtn: 'Clear Form',
+        uploadStatusTitle: 'Upload Status',
+        metaTitle: 'Metadata Preview',
+        metaSub: 'Used in the defense to stress that upload is not a black box but comes with traceable metadata.',
+        metaTag: 'Metadata',
+        metaField1: 'Current Name',
+        metaField2: 'Current Type',
+        metaField3: 'Description Summary',
+        metaField4: 'Source Label',
+        metaField4Value: 'frontend-upload',
+        metaField5: 'Current Position',
+        metaField5Value: 'Upload + record',
+        workflowTitle: 'Governance Workflow Layers',
+        workflowSub: 'Separating delivered capability from reserved capability is the key defense strategy of this page.',
+        workflowTag: 'Workflow',
+        flow1: '1. Dataset Upload',
+        flow1State: 'Active',
+        flow2: '2. Metadata Logging',
+        flow2State: 'Frontend-ready',
+        flow3: '3. Data Review',
+        flow4: '4. Version Control',
+        flow5: '5. Data Enhancement',
+        flow6: '6. Update Log / Rollback',
+        reserved: 'Reserved',
+        workflowNoteTitle: 'Current Page Status',
+        workflowNoteDesc: 'This page already connects to a real upload API and metadata can be displayed in sync; review, versioning, enhancement and rollback should proceed as frontend placeholders plus future backend APIs.',
+        qualityTitle: 'Quality & Version Notes',
+        qualityTag: 'Quality Layer',
+        quality1Title: 'Quality Check',
+        quality1Desc: 'Later you can add null checks, outlier detection, field consistency validation and time-dimension validation.',
+        quality2Title: 'Versioning',
+        quality2Desc: 'Different sources, Martian year ranges and cleaned versions can be tagged and rolled back.',
+        quality3Title: 'Update Records',
+        quality3Desc: 'This demonstrates that the platform supports continuous updates, records and rollback rather than static resources.',
+        proofTitle: 'Platform Completeness Proof',
+        proofSub: 'This section helps you explain why a governance page matters in the defense.',
+        proofTag: 'Judge View',
+        proof1Title: 'Existing Real API',
+        proof1Desc: 'A real dataset upload API is already connected and serves as the core anchor of this governance page.',
+        proof2Title: 'Frontend Ready',
+        proof2Desc: 'Upload form, status feedback, metadata preview and health check already form a complete demo loop.',
+        proof3Title: 'Backend To Add',
+        proof3Desc: 'Dataset details, version list, review status and update logs are good candidates for the next phase of API expansion.',
+        proof4Title: 'Placeholder First',
+        proof4Desc: 'Review, versioning, enhancement, rollback and update records can first be shown structurally and integrated later.',
+        answerTitle: 'Defense Script Suggestions',
+        answerSub: 'This section is not a feature; it helps you explain engineering completeness in the competition.',
+        answerTag: 'Pitch Layer',
+        answer1Title: 'Sentence 1',
+        answer1Desc: 'We are not building a single-point forecast demo, but a full platform around data, models, explainability and governance.',
+        answer2Title: 'Sentence 2',
+        answer2Desc: 'The governance page shows how the platform supports data ingestion, metadata traceability and future versioned management.',
+        answer3Title: 'Sentence 3',
+        answer3Desc: 'This means the system has long-term evolution capability and can support future model upgrades and special-topic expansion.',
+        online: 'Online',
+        offline: 'Offline',
+        uploadSuccess: 'Upload successful',
+        uploadFail: 'Upload failed',
+        noFile: 'Please select a file first',
+        uploaded: 'Uploaded',
+        waiting: 'Waiting',
+        demoName: 'Mars Ozone Governance Dataset',
+        demoDesc: 'Used to demonstrate data governance upload capability and metadata recording for the Mars ozone platform.',
+        cleared: 'Form cleared'
+      }
+    };
+
+    const state = {
+      lang: localStorage.getItem('marsLang') || 'zh'
+    };
+
+    function t(key) {
+      return (messages[state.lang] && messages[state.lang][key]) || key;
+    }
+
+    function getToken() {
+      return localStorage.getItem('marsToken') || '';
+    }
+
+    function authHeaders(extra = {}) {
+      const token = getToken();
+      return {
+        ...extra,
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      };
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = state.lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
+      });
+
+      document.getElementById('langZh').className =
+        state.lang === 'zh'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+
+      document.getElementById('langEn').className =
+        state.lang === 'en'
+          ? 'px-3 py-1.5 text-sm text-white bg-white/10'
+          : 'px-3 py-1.5 text-sm text-slate-400';
+    }
+
+    function showToast(message, isError = false) {
+      const old = document.getElementById('toast');
+      if (old) old.remove();
+
+      const div = document.createElement('div');
+      div.id = 'toast';
+      div.className = 'toast';
+      div.style.borderColor = isError ? 'rgba(244,63,94,0.25)' : 'rgba(19,164,236,0.25)';
+      div.textContent = message;
+      document.body.appendChild(div);
+
+      setTimeout(() => {
+        const el = document.getElementById('toast');
+        if (el) el.remove();
+      }, 2400);
+    }
+
+    async function checkHealth() {
+      const candidates = [
+        `${API_BASE}/health`,
+        '/api/health'
+      ];
+
+      const apiStatus = document.getElementById('apiStatus');
+      const heroApi = document.getElementById('heroApi');
+
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (res.ok && data.code === 0) {
+            apiStatus.textContent = t('online');
+            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
+            heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
+            return;
+          }
+        } catch (e) {}
+      }
+
+      apiStatus.textContent = t('offline');
+      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
+      heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
+    }
+
+    function fillDemoValues() {
+      document.getElementById('datasetName').value = t('demoName');
+      document.getElementById('datasetType').value = 'derived';
+      document.getElementById('datasetDesc').value = t('demoDesc');
+      syncMetaPreview();
+    }
+
+    function syncMetaPreview() {
+      document.getElementById('metaName').textContent =
+        document.getElementById('datasetName').value.trim() || '--';
+      document.getElementById('metaType').textContent =
+        document.getElementById('datasetType').value || '--';
+      document.getElementById('metaDesc').textContent =
+        document.getElementById('datasetDesc').value.trim() || '--';
+    }
+
+    function clearForm() {
+      document.getElementById('datasetName').value = '';
+      document.getElementById('datasetType').value = 'mcd';
+      document.getElementById('datasetDesc').value = '';
+      document.getElementById('datasetFile').value = '';
+      document.getElementById('uploadStatusText').textContent = '--';
+      document.getElementById('uploadState').textContent = t('waiting');
+      syncMetaPreview();
+      showToast(t('cleared'));
+    }
+
+    async function uploadDataset() {
+      const file = document.getElementById('datasetFile').files[0];
+      if (!file) {
+        showToast(t('noFile'), true);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('datasetName', document.getElementById('datasetName').value.trim() || 'Untitled Dataset');
+      formData.append('datasetType', document.getElementById('datasetType').value);
+      formData.append('description', document.getElementById('datasetDesc').value.trim() || '');
+      formData.append('source', 'frontend-upload');
+
+      try {
+        const res = await fetch(`${API_BASE}/datasets/upload`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: formData
+        });
+
+        const json = await res.json();
+        if (!res.ok || json.code !== 0) {
+          throw new Error(json.message || 'Upload failed');
+        }
+
+        document.getElementById('uploadStatusText').textContent = `${t('uploadSuccess')}：${file.name}`;
+        document.getElementById('uploadState').textContent = t('uploaded');
+        syncMetaPreview();
+        showToast(t('uploadSuccess'));
+      } catch (e) {
+        document.getElementById('uploadStatusText').textContent = `${t('uploadFail')}：${e.message}`;
+        showToast(`${t('uploadFail')}：${e.message}`, true);
+      }
+    }
+
+    document.getElementById('fillDemoBtn').addEventListener('click', fillDemoValues);
+    document.getElementById('uploadBtn').addEventListener('click', uploadDataset);
+    document.getElementById('clearBtn').addEventListener('click', clearForm);
+    document.getElementById('datasetName').addEventListener('input', syncMetaPreview);
+    document.getElementById('datasetType').addEventListener('change', syncMetaPreview);
+    document.getElementById('datasetDesc').addEventListener('input', syncMetaPreview);
+
+    document.getElementById('langZh').addEventListener('click', () => {
+      state.lang = 'zh';
+      localStorage.setItem('marsLang', 'zh');
+      applyI18n();
+      checkHealth();
+    });
+
+    document.getElementById('langEn').addEventListener('click', () => {
+      state.lang = 'en';
+      localStorage.setItem('marsLang', 'en');
+      applyI18n();
+      checkHealth();
+    });
+
+    document.getElementById('scrollUploadBtn').addEventListener('click', () => {
+      document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('scrollWorkflowBtn').addEventListener('click', () => {
+      document.getElementById('workflowSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    applyI18n();
+    checkHealth();
+    document.getElementById('uploadState').textContent = t('waiting');
+    syncMetaPreview();
+  </script>
+</body>
+</html>

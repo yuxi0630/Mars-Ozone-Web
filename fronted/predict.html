@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mars Ozone Platform - Forecast Console</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#13a4ec',
+            accent: '#ff7b54',
+            'bg-dark': '#071017',
+            'panel-dark': '#0c171f',
+            'panel-soft': '#101d27',
+            'line-dark': '#1d2b35'
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 0 48px rgba(19,164,236,0.18)',
+            card: '0 18px 60px rgba(0,0,0,0.32)',
+            insetline: 'inset 0 1px 0 rgba(255,255,255,0.03)'
+          },
+          backgroundImage: {
+            'space-shell': 'radial-gradient(circle at 16% 16%, rgba(19,164,236,0.16), transparent 24%), radial-gradient(circle at 84% 22%, rgba(255,123,84,0.14), transparent 20%), radial-gradient(circle at 50% 100%, rgba(19,164,236,0.10), transparent 36%), linear-gradient(145deg, #071017 0%, #09131b 45%, #0e171f 100%)',
+            'hero-shell': 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), radial-gradient(circle at 20% 25%, rgba(19,164,236,0.18), transparent 24%), radial-gradient(circle at 80% 18%, rgba(255,123,84,0.18), transparent 22%)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(19,164,236,0.10), transparent 28%),
+        radial-gradient(circle at 18% 10%, rgba(255,123,84,0.08), transparent 18%),
+        #071017;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent 92%);
+    }
+    .glass {
+      background: rgba(10, 19, 27, 0.72);
+      backdrop-filter: blur(18px);
+    }
+    .panel-card {
+      background: linear-gradient(180deg, rgba(17,29,38,0.94), rgba(11,20,27,0.92));
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.32);
+      position: relative;
+      overflow: hidden;
+    }
+    .panel-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 22%);
+    }
+    .metric-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .floating-dot {
+      box-shadow: 0 0 0 6px rgba(19,164,236,0.08), 0 0 28px rgba(19,164,236,0.24);
+    }
+    .hero-line {
+      position: relative;
+    }
+    .hero-line::after {
+      content: '';
+      display: block;
+      margin-top: 18px;
+      width: 140px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(19,164,236,0.8), rgba(19,164,236,0));
+    }
+    .risk-pill-low { background: rgba(52,211,153,0.12); color: #6ee7b7; border-color: rgba(52,211,153,0.22); }
+    .risk-pill-medium { background: rgba(250,204,21,0.12); color: #fde047; border-color: rgba(250,204,21,0.22); }
+    .risk-pill-high { background: rgba(251,146,60,0.12); color: #fdba74; border-color: rgba(251,146,60,0.22); }
+    .risk-pill-extreme { background: rgba(244,63,94,0.12); color: #fb7185; border-color: rgba(244,63,94,0.22); }
+    .heatmap-wrap {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), rgba(0,0,0,0.16);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    #heatmapCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 18px;
+    }
+    .legend-bar {
+      background: linear-gradient(90deg, rgb(9,19,39), rgb(27,56,92), rgb(51,181,255), rgb(186,81,43), rgb(255,123,84), rgb(255,211,112));
+    }
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9999;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: white;
+      background: rgba(4,9,13,0.82);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+      font-size: 14px;
+    }
+    .scroll-shell::-webkit-scrollbar { width: 8px; }
+    .scroll-shell::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
+  </style>
+</head>
+<body class="bg-bg-dark text-slate-100 antialiased">
+  <div class="relative min-h-screen overflow-x-hidden bg-space-shell">
+    <div class="pointer-events-none absolute inset-0 grid-bg opacity-25"></div>
+
+    <header class="sticky top-0 z-50 border-b border-white/10 bg-[#071017]/80 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
+        <div class="flex items-center gap-4">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
+            <span class="material-symbols-outlined text-[26px]">query_stats</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight" data-i18n="brandTitle">火星臭氧智能预报平台</h1>
+            <p class="text-xs text-slate-400" data-i18n="brandSub">Mars Ozone Intelligence Platform</p>
+          </div>
+        </div>
+
+        <div class="hidden items-center gap-8 md:flex">
+          <a href="index.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navHome">首页 / 总览</a>
+          <a href="predict.html" class="text-sm font-medium text-primary" data-i18n="navPredict">臭氧预测</a>
+          <a href="explorer.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navExplorer">时空可视化</a>
+          <a href="metrics.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navMetrics">模型评估</a>
+          <a href="assistant.html" class="text-sm text-slate-300 transition hover:text-primary" data-i18n="navAssistant">智能助手</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
+            <span class="material-symbols-outlined text-[16px] text-primary">lan</span>
+            <span>API</span>
+            <span id="apiStatus" class="rounded-full bg-amber-400/15 px-2 py-0.5 text-amber-300">检测中</span>
+          </div>
+          <div class="flex items-center overflow-hidden rounded-full border border-white/10 bg-white/5">
+            <button id="langZh" class="px-3 py-1.5 text-sm text-white">中文</button>
+            <button id="langEn" class="px-3 py-1.5 text-sm text-slate-400">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">
+      <section class="panel-card rounded-[30px] bg-hero-shell p-6 lg:p-8">
+        <div class="grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
+          <div>
+            <div class="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <span class="material-symbols-outlined text-[15px]">stacks</span>
+              <span data-i18n="forecastBadge">Forecast Console</span>
+            </div>
+            <h2 class="mt-5 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white lg:text-6xl" data-i18n="forecastTitle">
+              臭氧预测控制台
+            </h2>
+            <p class="hero-line mt-5 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg" data-i18n="forecastDesc">
+              面向比赛展示与真实联调的预测主界面，支持单点预测、未来 24h 趋势与全球网格热图，统一输出预测值、置信区间、风险等级和结果导出能力。
+            </p>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-[11px] uppercase tracking-[0.2em] text-slate-400" data-i18n="heroMetric1Label">模型版本</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="modelVersionText">Real-v1</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric1Sub">真实推理链</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-[11px] uppercase tracking-[0.2em] text-slate-400" data-i18n="heroMetric2Label">当前状态</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="heroApi">--</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric2Sub">接口健康检查</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="text-[11px] uppercase tracking-[0.2em] text-slate-400" data-i18n="heroMetric3Label">风险等级</div>
+                <div class="mt-2 text-3xl font-bold text-white" id="heroRisk">--</div>
+                <div class="mt-1 text-sm text-slate-400" data-i18n="heroMetric3Sub">根据单点结果更新</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-[28px] border border-white/10 bg-black/20 p-5 shadow-glow">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="heroRightTag">Demo Route</div>
+                <h3 class="mt-2 text-lg font-semibold text-white" data-i18n="heroRightTitle">答辩演示建议路径</h3>
+              </div>
+              <div class="floating-dot h-3 w-3 rounded-full bg-primary"></div>
+            </div>
+            <div class="mt-5 space-y-3 text-sm text-slate-300">
+              <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <span class="mt-0.5 text-primary">01</span>
+                <p data-i18n="heroStep1">先输入经纬度与 MY / Sol，执行单点预测，展示实时预测值与风险等级。</p>
+              </div>
+              <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <span class="mt-0.5 text-primary">02</span>
+                <p data-i18n="heroStep2">再切换到 24h 趋势，解释未来波动区间、峰值位置与区间上界下界。</p>
+              </div>
+              <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <span class="mt-0.5 text-primary">03</span>
+                <p data-i18n="heroStep3">最后生成全球热图，说明空间分布特征，并为 Explorer 页面做数据铺垫。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 grid gap-4 rounded-[26px] border border-white/10 bg-black/20 p-4 lg:grid-cols-4">
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div class="text-[11px] uppercase tracking-[0.18em] text-slate-500" data-i18n="hudLabel1">主能力</div>
+            <div class="mt-2 text-sm font-semibold text-white" data-i18n="hudValue1">单点 + 趋势 + 热图</div>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div class="text-[11px] uppercase tracking-[0.18em] text-slate-500" data-i18n="hudLabel2">真实接口</div>
+            <div class="mt-2 text-sm font-semibold text-white">/predict/point · /24h · /grid</div>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div class="text-[11px] uppercase tracking-[0.18em] text-slate-500" data-i18n="hudLabel3">比赛表达</div>
+            <div class="mt-2 text-sm font-semibold text-white" data-i18n="hudValue3">结果 + 解释 + 导出</div>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div class="text-[11px] uppercase tracking-[0.18em] text-slate-500" data-i18n="hudLabel4">当前输入</div>
+            <div class="mt-2 text-sm font-semibold text-white"><span id="heroInputMeta">MY27 / Sol 120</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-8 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+        <aside class="panel-card rounded-[28px] p-5 lg:p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="controlTag">Input Parameters</div>
+              <h3 class="mt-2 text-xl font-bold text-white" data-i18n="controlTitle">预测控制台</h3>
+            </div>
+            <button id="fillDemoBtn" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10" data-i18n="fillDemoBtn">填充示例</button>
+          </div>
+
+          <div class="mt-6 space-y-4">
+            <label class="block">
+              <span class="mb-2 block text-sm text-slate-300" data-i18n="labelLat">纬度</span>
+              <input id="latInput" type="number" step="0.1" class="w-full rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="10.5" />
+            </label>
+            <label class="block">
+              <span class="mb-2 block text-sm text-slate-300" data-i18n="labelLon">经度</span>
+              <input id="lonInput" type="number" step="0.1" class="w-full rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="45.2" />
+            </label>
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+              <label class="block">
+                <span class="mb-2 block text-sm text-slate-300" data-i18n="labelYear">火星年</span>
+                <select id="yearInput" class="w-full rounded-2xl border-white/10 bg-white/5 text-white focus:border-primary focus:ring-primary">
+                  <option value="MY27">MY27</option>
+                  <option value="MY28">MY28</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="mb-2 block text-sm text-slate-300" data-i18n="labelSol">Sol</span>
+                <input id="solInput" type="number" class="w-full rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="120" />
+              </label>
+            </div>
+          </div>
+
+          <div class="mt-6 space-y-3">
+            <button id="runPointBtn" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary/90 shadow-lg shadow-primary/20" data-i18n="runPointBtn">单点预测</button>
+            <button id="run24hBtn" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/15" data-i18n="run24hBtn">24h 预测</button>
+            <button id="runGridBtn" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/10" data-i18n="runGridBtn">全球热图</button>
+            <button id="downloadBtn" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/10" data-i18n="downloadBtn">导出 JSON</button>
+          </div>
+
+          <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="text-sm font-medium text-white" data-i18n="controlTipTitle">提示</div>
+            <p class="mt-2 text-sm leading-7 text-slate-400" data-i18n="controlTipDesc">推荐先执行单点预测，再执行 24h 趋势和全球热图，以便形成完整叙事链路。</p>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-500" data-i18n="controlExplainTitle">当前模块状态</div>
+            <div class="mt-3 space-y-3 text-sm text-slate-300">
+              <div class="flex items-center justify-between"><span data-i18n="controlExplain1">单点预测</span><span class="text-emerald-300" data-i18n="statusAvailable">真实接口</span></div>
+              <div class="flex items-center justify-between"><span data-i18n="controlExplain2">24h 趋势</span><span class="text-emerald-300" data-i18n="statusAvailable">真实接口</span></div>
+              <div class="flex items-center justify-between"><span data-i18n="controlExplain3">全球热图</span><span class="text-emerald-300" data-i18n="statusAvailable">真实接口</span></div>
+              <div class="flex items-center justify-between"><span data-i18n="controlExplain4">模型对比</span><span class="text-amber-300" data-i18n="statusReserved">预留能力</span></div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="space-y-6">
+          <section class="grid gap-6 2xl:grid-cols-[1.35fr_0.85fr]">
+            <div class="panel-card rounded-[28px] p-6 lg:p-7">
+              <div class="mb-6 flex items-center justify-between gap-4">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="pointResultTag">Point Inference</div>
+                  <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="pointResultTitle">单点预测结果</h3>
+                </div>
+                <div id="pointRiskBadge" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">--</div>
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div class="metric-card rounded-2xl p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="fieldPrediction">预测值</div>
+                  <div class="mt-3 text-4xl font-bold text-white" id="pointPrediction">--</div>
+                  <div class="mt-1 text-sm text-slate-400" id="pointUnit">--</div>
+                </div>
+                <div class="metric-card rounded-2xl p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="fieldRisk">风险等级</div>
+                  <div class="mt-3 text-4xl font-bold text-white" id="pointRisk">--</div>
+                  <div class="mt-1 text-sm text-slate-400" data-i18n="fieldRiskSub">由预测结果动态更新</div>
+                </div>
+                <div class="metric-card rounded-2xl p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="fieldConfidence">置信区间</div>
+                  <div class="mt-3 text-lg font-semibold leading-7 text-white" id="pointConfidence">--</div>
+                  <div class="mt-1 text-sm text-slate-400" data-i18n="fieldConfidenceSub">下界 ~ 上界</div>
+                </div>
+                <div class="metric-card rounded-2xl p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="fieldLs">火星季节 Ls</div>
+                  <div class="mt-3 text-4xl font-bold text-white" id="pointLs">--</div>
+                  <div class="mt-1 text-sm text-slate-400" id="pointMeta">--</div>
+                </div>
+              </div>
+
+              <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="mb-2 text-sm font-medium text-slate-300" data-i18n="pointSummaryTitle">结果摘要</div>
+                <p class="text-sm leading-7 text-slate-400" id="pointSummaryText">--</p>
+              </div>
+            </div>
+
+            <div class="panel-card rounded-[28px] p-6 lg:p-7">
+              <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="riskPanelTag">Risk & Confidence</div>
+              <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="riskPanelTitle">风险与可信度说明</h3>
+              <div class="mt-6 flex items-center justify-center">
+                <div class="relative flex h-44 w-44 items-center justify-center rounded-full border-[14px] border-white/5 bg-[radial-gradient(circle_at_50%_45%,rgba(19,164,236,0.10),transparent_55%)]">
+                  <div class="absolute inset-0 rounded-full border-[14px] border-transparent border-t-primary border-r-primary rotate-45"></div>
+                  <div class="text-center">
+                    <div id="riskGaugeLabel" class="text-3xl font-bold text-primary">--</div>
+                    <div class="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-500" data-i18n="riskGaugeSub">Risk Index</div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-6 space-y-3 text-sm text-slate-300">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="font-medium text-white" data-i18n="riskExplainTitle">风险解释</div>
+                  <p class="mt-2 leading-7 text-slate-400" id="riskExplainText">--</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="font-medium text-white" data-i18n="confidenceExplainTitle">区间解释</div>
+                  <p class="mt-2 leading-7 text-slate-400" data-i18n="confidenceExplainText">置信区间用于说明预测结果的波动范围。区间越窄，说明该时刻预测输出越稳定；区间越宽，则需结合趋势与空间分布谨慎解读。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-card rounded-[28px] p-6 lg:p-7">
+            <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="chart24hTag">Trend Forecast</div>
+                <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="chart24hTitle">未来 24h 趋势预测</h3>
+                <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-400" data-i18n="chart24hDesc">用于展示未来一个火星日尺度内臭氧变化趋势，帮助评委理解峰值位置、波动强度与区间宽度。</p>
+              </div>
+              <div class="flex flex-wrap gap-3 text-xs uppercase tracking-[0.16em] text-slate-400">
+                <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1" data-i18n="chartLegend1">预测主线</span>
+                <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1" data-i18n="chartLegend2">上界 / 下界</span>
+              </div>
+            </div>
+            <div class="h-[360px] rounded-3xl border border-white/10 bg-black/20 p-4">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </section>
+
+          <section class="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
+            <div class="panel-card rounded-[28px] p-6 lg:p-7">
+              <div class="mb-5 flex items-center justify-between gap-4">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="gridTag">Global Grid</div>
+                  <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="gridTitle">全球热图预测</h3>
+                </div>
+                <div class="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary" data-i18n="gridRightTag">Spatial Distribution</div>
+              </div>
+              <div class="heatmap-wrap rounded-3xl p-4">
+                <canvas id="heatmapCanvas" width="960" height="420"></canvas>
+                <div class="mt-4 grid gap-2 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+                  <span class="text-xs text-slate-500">Low</span>
+                  <div class="legend-bar h-2 rounded-full"></div>
+                  <span class="text-xs text-slate-500">High</span>
+                </div>
+              </div>
+              <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="gridInfo1">网格状态</div>
+                  <div class="mt-2 text-lg font-semibold text-white" id="gridStatus">--</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="gridInfo2">数值范围</div>
+                  <div class="mt-2 text-lg font-semibold text-white" id="gridRange">--</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400" data-i18n="gridInfo3">MY / Sol</div>
+                  <div class="mt-2 text-lg font-semibold text-white" id="gridMeta">--</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-card rounded-[28px] p-6 lg:p-7">
+              <div class="text-xs uppercase tracking-[0.2em] text-slate-500" data-i18n="explainTag">Judge-friendly</div>
+              <h3 class="mt-2 text-2xl font-bold text-white" data-i18n="explainTitle">解释型展示</h3>
+              <div class="mt-5 space-y-4">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-[18px] text-primary">pin_drop</span>
+                    <span class="font-semibold" data-i18n="exp1Title">单点预测</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="exp1Desc">展示经纬度、火星年和 Sol 下的臭氧预测值，并辅以置信区间与风险等级。</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-[18px] text-primary">show_chart</span>
+                    <span class="font-semibold" data-i18n="exp2Title">趋势展示</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="exp2Desc">通过未来 24h 趋势曲线帮助评委理解变化方向、波动区间和峰值位置。</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-[18px] text-primary">grid_view</span>
+                    <span class="font-semibold" data-i18n="exp3Title">热图展示</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="exp3Desc">通过全球网格热图表达空间分布特征，为后续 3D 火星球与专题页提供基础数据支撑。</p>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="mb-2 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined text-[18px] text-primary">compare_arrows</span>
+                    <span class="font-semibold" data-i18n="exp4Title">结果导出与对比预留</span>
+                  </div>
+                  <p class="text-sm leading-7 text-slate-400" data-i18n="exp4Desc">当前已支持导出热图 JSON，后续可在此接入模型版本切换与对比能力。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000/api';
+
+    const messages = {
+      zh: {
+        brandTitle: '火星臭氧智能预报平台',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: '首页 / 总览',
+        navPredict: '臭氧预测',
+        navExplorer: '时空可视化',
+        navMetrics: '模型评估',
+        navAssistant: '智能助手',
+        forecastBadge: 'Forecast Console',
+        forecastTitle: '臭氧预测控制台',
+        forecastDesc: '面向比赛展示与真实联调的预测主界面，支持单点预测、未来 24h 趋势与全球网格热图，统一输出预测值、置信区间、风险等级和结果导出能力。',
+        heroMetric1Label: '模型版本',
+        heroMetric1Sub: '真实推理链',
+        heroMetric2Label: '当前状态',
+        heroMetric2Sub: '接口健康检查',
+        heroMetric3Label: '风险等级',
+        heroMetric3Sub: '根据单点结果更新',
+        heroRightTag: '答辩路径',
+        heroRightTitle: '答辩演示建议路径',
+        heroStep1: '先输入经纬度与 MY / Sol，执行单点预测，展示实时预测值与风险等级。',
+        heroStep2: '再切换到 24h 趋势，解释未来波动区间、峰值位置与区间上界下界。',
+        heroStep3: '最后生成全球热图，说明空间分布特征，并为 Explorer 页面做数据铺垫。',
+        hudLabel1: '主能力',
+        hudValue1: '单点 + 趋势 + 热图',
+        hudLabel2: '真实接口',
+        hudLabel3: '比赛表达',
+        hudValue3: '结果 + 解释 + 导出',
+        hudLabel4: '当前输入',
+        controlTag: '输入参数',
+        controlTitle: '预测控制台',
+        fillDemoBtn: '填充示例',
+        labelLat: '纬度',
+        labelLon: '经度',
+        labelYear: '火星年',
+        labelSol: 'Sol',
+        runPointBtn: '单点预测',
+        run24hBtn: '24h 预测',
+        runGridBtn: '全球热图',
+        downloadBtn: '导出 JSON',
+        controlTipTitle: '提示',
+        controlTipDesc: '推荐先执行单点预测，再执行 24h 趋势和全球热图，以便形成完整叙事链路。',
+        controlExplainTitle: '当前模块状态',
+        controlExplain1: '单点预测',
+        controlExplain2: '24h 趋势',
+        controlExplain3: '全球热图',
+        controlExplain4: '模型对比',
+        statusAvailable: '真实接口',
+        statusReserved: '预留能力',
+        pointResultTitle: '单点预测结果',
+        pointResultTag: '单点推理',
+        fieldPrediction: '预测值',
+        fieldRisk: '风险等级',
+        fieldRiskSub: '由预测结果动态更新',
+        fieldConfidence: '置信区间',
+        fieldConfidenceSub: '下界 ~ 上界',
+        fieldLs: '火星季节 Ls',
+        pointSummaryTitle: '结果摘要',
+        riskPanelTag: '风险与可信度',
+        riskPanelTitle: '风险与可信度说明',
+        riskGaugeSub: '风险指数',
+        riskExplainTitle: '风险解释',
+        confidenceExplainTitle: '区间解释',
+        confidenceExplainText: '置信区间用于说明预测结果的波动范围。区间越窄，说明该时刻预测输出越稳定；区间越宽，则需结合趋势与空间分布谨慎解读。',
+        chart24hTitle: '未来 24h 趋势预测',
+        chart24hTag: '趋势预测',
+        chart24hDesc: '用于展示未来一个火星日尺度内臭氧变化趋势，帮助评委理解峰值位置、波动强度与区间宽度。',
+        chartLegend1: '预测主线',
+        chartLegend2: '上界 / 下界',
+        gridTitle: '全球热图预测',
+        gridTag: '全球网格',
+        gridRightTag: '空间分布',
+        gridInfo1: '网格状态',
+        gridInfo2: '数值范围',
+        gridInfo3: 'MY / Sol',
+        explainTitle: '解释型展示',
+        explainTag: '评委友好',
+        exp1Title: '单点预测',
+        exp1Desc: '展示经纬度、火星年和 Sol 下的臭氧预测值，并辅以置信区间与风险等级。',
+        exp2Title: '趋势展示',
+        exp2Desc: '通过未来 24h 趋势曲线帮助评委理解变化方向、波动区间和峰值位置。',
+        exp3Title: '热图展示',
+        exp3Desc: '通过全球网格热图表达空间分布特征，为后续 3D 火星球与专题页提供基础数据支撑。',
+        exp4Title: '结果导出与对比预留',
+        exp4Desc: '当前已支持导出热图 JSON，后续可在此接入模型版本切换与对比能力。',
+        online: '在线',
+        offline: '离线',
+        noGridData: '请先生成热图数据',
+        pointSuccess: '单点预测完成',
+        trendSuccess: '24h 预测完成',
+        gridSuccess: '全球热图已生成',
+        exportSuccess: '已导出当前热图结果',
+        pointFail: '单点预测失败',
+        trendFail: '24h 预测失败',
+        gridFail: '热图预测失败',
+        unitFallback: '单位',
+        riskFallback: '未定义',
+        summaryTemplate: '在 {year} 的 Sol {sol} 条件下，目标点位的臭氧预测值为 {prediction} {unit}，风险等级为 {risk}，对应季节参数 Ls={ls}。',
+        riskExplainLow: '当前输出处于低风险区间，可作为稳定背景态进行展示与解释。',
+        riskExplainMedium: '当前输出进入中等风险区间，建议结合 24h 趋势观察峰值波动。',
+        riskExplainHigh: '当前输出已达到较高风险区间，适合重点说明空间分布异常与变化原因。',
+        riskExplainExtreme: '当前输出属于极高风险区间，建议在答辩时配合可信度说明强调边界条件与谨慎解读。'
+      },
+      en: {
+        brandTitle: 'Mars Ozone Intelligence Platform',
+        brandSub: 'Mars Ozone Intelligence Platform',
+        navHome: 'Home / Overview',
+        navPredict: 'Ozone Forecast',
+        navExplorer: 'Exploration',
+        navMetrics: 'Model Evaluation',
+        navAssistant: 'AI Assistant',
+        forecastBadge: 'Forecast Console',
+        forecastTitle: 'Ozone Forecast Console',
+        forecastDesc: 'A judge-facing and API-connected forecast workspace supporting point prediction, 24-hour trend forecasting, global gridded heatmaps, confidence intervals, risk levels and result export.',
+        heroMetric1Label: 'Model Version',
+        heroMetric1Sub: 'Real inference chain',
+        heroMetric2Label: 'Current Status',
+        heroMetric2Sub: 'Backend health check',
+        heroMetric3Label: 'Risk Level',
+        heroMetric3Sub: 'Updated from point result',
+        heroRightTag: 'Demo Route',
+        heroRightTitle: 'Recommended demo path',
+        heroStep1: 'Enter latitude, longitude, MY and Sol first, then run point forecast to show a direct prediction with risk level.',
+        heroStep2: 'Next, switch to 24-hour trend to explain future variability, peak intervals and confidence bounds.',
+        heroStep3: 'Finally, generate the global heatmap to explain spatial distribution and bridge into the Explorer page.',
+        hudLabel1: 'Core Capability',
+        hudValue1: 'Point + Trend + Heatmap',
+        hudLabel2: 'Real APIs',
+        hudLabel3: 'Competition Value',
+        hudValue3: 'Result + Explanation + Export',
+        hudLabel4: 'Current Input',
+        controlTag: 'Input Parameters',
+        controlTitle: 'Forecast Console',
+        fillDemoBtn: 'Fill Demo',
+        labelLat: 'Latitude',
+        labelLon: 'Longitude',
+        labelYear: 'Martian Year',
+        labelSol: 'Sol',
+        runPointBtn: 'Point Forecast',
+        run24hBtn: '24h Forecast',
+        runGridBtn: 'Global Grid',
+        downloadBtn: 'Export JSON',
+        controlTipTitle: 'Tip',
+        controlTipDesc: 'A good demo route is point forecast first, then 24h trend, and finally the global heatmap.',
+        controlExplainTitle: 'Module Status',
+        controlExplain1: 'Point Forecast',
+        controlExplain2: '24h Trend',
+        controlExplain3: 'Global Heatmap',
+        controlExplain4: 'Model Comparison',
+        statusAvailable: 'Real API',
+        statusReserved: 'Reserved',
+        pointResultTitle: 'Point Forecast Result',
+        pointResultTag: 'Point Inference',
+        fieldPrediction: 'Prediction',
+        fieldRisk: 'Risk Level',
+        fieldRiskSub: 'Updated from point result',
+        fieldConfidence: 'Confidence Interval',
+        fieldConfidenceSub: 'Lower ~ Upper',
+        fieldLs: 'Seasonal Ls',
+        pointSummaryTitle: 'Result Summary',
+        riskPanelTag: 'Risk & Confidence',
+        riskPanelTitle: 'Risk and Confidence Guidance',
+        riskGaugeSub: 'Risk Index',
+        riskExplainTitle: 'Risk Interpretation',
+        confidenceExplainTitle: 'Interval Interpretation',
+        confidenceExplainText: 'The confidence interval describes possible variation around the prediction. Narrower intervals suggest more stable outputs, while wider intervals should be interpreted together with trend and spatial distribution.',
+        chart24hTitle: '24-hour Trend Forecast',
+        chart24hTag: 'Trend Forecast',
+        chart24hDesc: 'Shows ozone variation through a future Martian-day window, helping judges understand peaks, volatility and interval width.',
+        chartLegend1: 'Prediction Line',
+        chartLegend2: 'Upper / Lower Bound',
+        gridTitle: 'Global Heatmap Forecast',
+        gridTag: 'Global Grid',
+        gridRightTag: 'Spatial Distribution',
+        gridInfo1: 'Grid Status',
+        gridInfo2: 'Value Range',
+        gridInfo3: 'MY / Sol',
+        explainTitle: 'Interpretive Display',
+        explainTag: 'Judge-friendly',
+        exp1Title: 'Point Forecast',
+        exp1Desc: 'Shows ozone prediction for selected coordinates and time, with confidence interval and risk level.',
+        exp2Title: 'Trend Display',
+        exp2Desc: 'Uses 24-hour trend curves to explain direction, variability and peak locations.',
+        exp3Title: 'Heatmap Display',
+        exp3Desc: 'Uses global gridded heatmaps to reveal spatial distribution and support later globe visualization.',
+        exp4Title: 'Export & Comparison Reserve',
+        exp4Desc: 'Grid JSON export is supported now, while model switching and comparison can be plugged in later.',
+        online: 'Online',
+        offline: 'Offline',
+        noGridData: 'Please generate grid data first',
+        pointSuccess: 'Point forecast completed',
+        trendSuccess: '24h forecast completed',
+        gridSuccess: 'Global grid generated',
+        exportSuccess: 'Current grid result exported',
+        pointFail: 'Point forecast failed',
+        trendFail: '24h forecast failed',
+        gridFail: 'Grid forecast failed',
+        unitFallback: 'unit',
+        riskFallback: 'undefined',
+        summaryTemplate: 'For {year} at Sol {sol}, the ozone prediction at the target location is {prediction} {unit}, with risk level {risk} and seasonal parameter Ls={ls}.',
+        riskExplainLow: 'The current output falls in a low-risk band and can be presented as a stable background state.',
+        riskExplainMedium: 'The current output is in a moderate-risk band; use the 24-hour trend to explain possible fluctuations.',
+        riskExplainHigh: 'The current output is in a high-risk band and is suitable for highlighting abnormal variation and spatial change.',
+        riskExplainExtreme: 'The current output is in an extreme-risk band; pair it with confidence guidance and boundary-condition explanation during defense.'
+      }
+    };
+
+    const state = {
+      lang: localStorage.getItem('marsLang') || 'zh',
+      trendChart: null,
+      currentGridData: null
+    };
+
+    function t(key) {
+      return (messages[state.lang] && messages[state.lang][key]) || key;
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = state.lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (messages[state.lang][key]) el.textContent = messages[state.lang][key];
+      });
+
+      document.getElementById('langZh').className =
+        state.lang === 'zh' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
+      document.getElementById('langEn').className =
+        state.lang === 'en' ? 'px-3 py-1.5 text-sm text-white bg-white/10' : 'px-3 py-1.5 text-sm text-slate-400';
+    }
+
+    function showToast(message, isError = false) {
+      const old = document.getElementById('toast');
+      if (old) old.remove();
+      const div = document.createElement('div');
+      div.id = 'toast';
+      div.className = 'toast';
+      div.style.borderColor = isError ? 'rgba(244,63,94,0.25)' : 'rgba(19,164,236,0.25)';
+      div.textContent = message;
+      document.body.appendChild(div);
+      setTimeout(() => {
+        const el = document.getElementById('toast');
+        if (el) el.remove();
+      }, 2400);
+    }
+
+    function fillDemoValues() {
+      document.getElementById('latInput').value = 10.5;
+      document.getElementById('lonInput').value = 45.2;
+      document.getElementById('yearInput').value = 'MY27';
+      document.getElementById('solInput').value = 120;
+      updateHeroInputMeta();
+    }
+
+    function updateHeroInputMeta() {
+      const year = document.getElementById('yearInput').value || '--';
+      const sol = document.getElementById('solInput').value || '--';
+      document.getElementById('heroInputMeta').textContent = `${year} / Sol ${sol}`;
+    }
+
+    function getPayload() {
+      return {
+        lat: parseFloat(document.getElementById('latInput').value),
+        lon: parseFloat(document.getElementById('lonInput').value),
+        martian_year: document.getElementById('yearInput').value,
+        sol: parseInt(document.getElementById('solInput').value, 10)
+      };
+    }
+
+    async function apiPost(path, payload) {
+      const res = await fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (!res.ok || json.code !== 0) throw new Error(json.message || 'Request failed');
+      return json.data;
+    }
+
+    async function checkHealth() {
+      const candidates = [`${API_BASE}/health`, '/api/health'];
+      const apiStatus = document.getElementById('apiStatus');
+      const heroApi = document.getElementById('heroApi');
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (res.ok && data.code === 0) {
+            apiStatus.textContent = t('online');
+            apiStatus.className = 'rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300';
+            heroApi.textContent = state.lang === 'zh' ? '在线' : 'ONLINE';
+            return;
+          }
+        } catch (e) {}
+      }
+      apiStatus.textContent = t('offline');
+      apiStatus.className = 'rounded-full bg-rose-400/15 px-2 py-0.5 text-rose-300';
+      heroApi.textContent = state.lang === 'zh' ? '离线' : 'OFFLINE';
+    }
+
+    function getRiskClass(risk) {
+      const text = String(risk || '').toLowerCase();
+      if (/(低|low)/.test(text)) return 'risk-pill-low';
+      if (/(中|moderate|medium)/.test(text)) return 'risk-pill-medium';
+      if (/(高|high)/.test(text)) return 'risk-pill-high';
+      if (/(极|extreme)/.test(text)) return 'risk-pill-extreme';
+      return 'border-white/10 bg-white/5 text-slate-300';
+    }
+
+    function getRiskExplain(risk) {
+      const text = String(risk || '').toLowerCase();
+      if (/(低|low)/.test(text)) return t('riskExplainLow');
+      if (/(中|moderate|medium)/.test(text)) return t('riskExplainMedium');
+      if (/(高|high)/.test(text)) return t('riskExplainHigh');
+      if (/(极|extreme)/.test(text)) return t('riskExplainExtreme');
+      return t('confidenceExplainText');
+    }
+
+    async function runPointPrediction() {
+      try {
+        updateHeroInputMeta();
+        const data = await apiPost('/predict/point', getPayload());
+        const prediction = data.prediction ?? '--';
+        const unit = data.unit || t('unitFallback');
+        const risk = data.riskLevel || t('riskFallback');
+        const ls = data.ls ?? '--';
+        const year = data.martianYear || getPayload().martian_year;
+        const sol = data.sol ?? getPayload().sol;
+        const conf = Array.isArray(data.confidenceInterval) ? `${data.confidenceInterval[0]} ~ ${data.confidenceInterval[1]}` : '--';
+
+        document.getElementById('pointPrediction').textContent = prediction;
+        document.getElementById('pointUnit').textContent = unit;
+        document.getElementById('pointRisk').textContent = risk;
+        document.getElementById('pointConfidence').textContent = conf;
+        document.getElementById('pointLs').textContent = ls;
+        document.getElementById('pointMeta').textContent = `${year} / Sol ${sol}`;
+        document.getElementById('heroRisk').textContent = risk;
+        document.getElementById('riskGaugeLabel').textContent = risk;
+        document.getElementById('modelVersionText').textContent = data.modelVersion || 'Real-v1';
+        document.getElementById('riskExplainText').textContent = getRiskExplain(risk);
+
+        const badge = document.getElementById('pointRiskBadge');
+        badge.textContent = risk;
+        badge.className = `rounded-full border px-3 py-1 text-xs ${getRiskClass(risk)}`;
+
+        const summary = t('summaryTemplate')
+          .replace('{year}', year)
+          .replace('{sol}', sol)
+          .replace('{prediction}', prediction)
+          .replace('{unit}', unit)
+          .replace('{risk}', risk)
+          .replace('{ls}', ls);
+        document.getElementById('pointSummaryText').textContent = summary;
+        showToast(t('pointSuccess'));
+      } catch (e) {
+        showToast(`${t('pointFail')}：${e.message}`, true);
+      }
+    }
+
+    function getTrendChartOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#dbe7f3', boxWidth: 10, boxHeight: 10 } },
+          title: { display: false }
+        },
+        scales: {
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+        }
+      };
+    }
+
+    async function run24hPrediction() {
+      try {
+        updateHeroInputMeta();
+        const data = await apiPost('/predict/24h', getPayload());
+        const series = data.series || [];
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        if (state.trendChart) state.trendChart.destroy();
+        state.trendChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: series.map(item => item.label),
+            datasets: [
+              {
+                label: state.lang === 'zh' ? '预测值' : 'Prediction',
+                data: series.map(item => item.prediction),
+                borderColor: '#13a4ec',
+                backgroundColor: 'rgba(19,164,236,0.16)',
+                tension: 0.36,
+                fill: false,
+                borderWidth: 2.4,
+                pointRadius: 0
+              },
+              {
+                label: state.lang === 'zh' ? '上界' : 'Upper',
+                data: series.map(item => item.upperBound),
+                borderColor: '#ff7b54',
+                backgroundColor: 'rgba(255,123,84,0.12)',
+                tension: 0.36,
+                fill: false,
+                borderWidth: 1.6,
+                pointRadius: 0
+              },
+              {
+                label: state.lang === 'zh' ? '下界' : 'Lower',
+                data: series.map(item => item.lowerBound),
+                borderColor: '#7dd3fc',
+                backgroundColor: 'rgba(125,211,252,0.12)',
+                tension: 0.36,
+                fill: false,
+                borderWidth: 1.6,
+                pointRadius: 0
+              }
+            ]
+          },
+          options: getTrendChartOptions()
+        });
+        showToast(t('trendSuccess'));
+      } catch (e) {
+        showToast(`${t('trendFail')}：${e.message}`, true);
+      }
+    }
+
+    function colorScale(tValue) {
+      const stops = [[9,19,39],[27,56,92],[51,181,255],[186,81,43],[255,123,84],[255,211,112]];
+      const p = Math.max(0, Math.min(1, tValue)) * (stops.length - 1);
+      const i = Math.floor(p);
+      const f = p - i;
+      const a = stops[i];
+      const b = stops[Math.min(i + 1, stops.length - 1)];
+      return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)}, ${Math.round(a[1] + (b[1] - a[1]) * f)}, ${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+    }
+
+    function renderHeatmap(grid) {
+      const canvas = document.getElementById('heatmapCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!Array.isArray(grid) || !grid.length) return;
+      let min = Infinity;
+      let max = -Infinity;
+      grid.forEach(row => row.forEach(v => {
+        if (Number.isFinite(v)) {
+          min = Math.min(min, v);
+          max = Math.max(max, v);
+        }
+      }));
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const cellW = canvas.width / cols;
+      const cellH = canvas.height / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const value = grid[r][c];
+          const ratio = (value - min) / ((max - min) || 1);
+          ctx.fillStyle = colorScale(ratio);
+          ctx.fillRect(c * cellW, r * cellH, cellW + 1, cellH + 1);
+        }
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.font = '14px Space Grotesk, sans-serif';
+      ctx.fillText(`Range: ${min.toFixed(3)} ~ ${max.toFixed(3)}`, 18, 24);
+      document.getElementById('gridRange').textContent = `${min.toFixed(3)} ~ ${max.toFixed(3)}`;
+      document.getElementById('gridStatus').textContent = state.lang === 'zh' ? '已生成' : 'Generated';
+      document.getElementById('gridMeta').textContent = `${document.getElementById('yearInput').value} / Sol ${document.getElementById('solInput').value}`;
+    }
+
+    async function runGridPrediction() {
+      try {
+        updateHeroInputMeta();
+        const payload = {
+          martian_year: document.getElementById('yearInput').value,
+          sol: parseInt(document.getElementById('solInput').value, 10)
+        };
+        const data = await apiPost('/predict/grid', payload);
+        state.currentGridData = data;
+        renderHeatmap(data.grid || []);
+        showToast(t('gridSuccess'));
+      } catch (e) {
+        showToast(`${t('gridFail')}：${e.message}`, true);
+      }
+    }
+
+    function exportGridJson() {
+      if (!state.currentGridData) {
+        showToast(t('noGridData'), true);
+        return;
+      }
+      const blob = new Blob([JSON.stringify(state.currentGridData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mars_grid_prediction.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(t('exportSuccess'));
+    }
+
+    document.getElementById('fillDemoBtn').addEventListener('click', fillDemoValues);
+    document.getElementById('runPointBtn').addEventListener('click', runPointPrediction);
+    document.getElementById('run24hBtn').addEventListener('click', run24hPrediction);
+    document.getElementById('runGridBtn').addEventListener('click', runGridPrediction);
+    document.getElementById('downloadBtn').addEventListener('click', exportGridJson);
+    document.getElementById('yearInput').addEventListener('change', updateHeroInputMeta);
+    document.getElementById('solInput').addEventListener('input', updateHeroInputMeta);
+
+    document.getElementById('langZh').addEventListener('click', () => {
+      state.lang = 'zh';
+      localStorage.setItem('marsLang', 'zh');
+      applyI18n();
+      checkHealth();
+      updateHeroInputMeta();
+    });
+
+    document.getElementById('langEn').addEventListener('click', () => {
+      state.lang = 'en';
+      localStorage.setItem('marsLang', 'en');
+      applyI18n();
+      checkHealth();
+      updateHeroInputMeta();
+    });
+
+    fillDemoValues();
+    applyI18n();
+    checkHealth();
+    document.getElementById('riskExplainText').textContent = t('confidenceExplainText');
+    document.getElementById('riskGaugeLabel').textContent = '--';
+    document.getElementById('pointRiskBadge').textContent = '--';
+  </script>
+</body>
+</html>
